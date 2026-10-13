@@ -1,0 +1,1244 @@
+# PROJECT SPECIFICATION: PERSONAL FINANCE MANAGEMENT WEBSITE
+
+## 1. VAI TRÒ CỦA AI AGENT
+
+Bạn là Senior Full-Stack Developer, Software Architect và UI/UX Designer.
+
+Nhiệm vụ của bạn là phân tích, thiết kế và xây dựng một website quản lý tài chính cá nhân hoàn chỉnh có tên **FinTrack – Personal Finance Management System**.
+
+Đây là dự án web full-stack phục vụ đồ án cuối kỳ của sinh viên năm 2. Mã nguồn phải dễ hiểu, dễ bảo trì, có cấu trúc rõ ràng và có thể chạy thực tế.
+
+Không chỉ tạo giao diện tĩnh. Tất cả chức năng phải kết nối đầy đủ giữa frontend, backend và database.
+
+Yêu cầu:
+- Xây dựng giao diện dựa trên hình ảnh tham khảo được cung cấp.
+- Xây dựng backend API hoàn chỉnh.
+- Thiết kế MongoDB database và Mongoose models.
+- Triển khai đăng ký, đăng nhập và phân quyền.
+- Xây dựng đầy đủ các chức năng quản lý thu chi.
+- Định nghĩa rõ mối quan hệ giữa các use case.
+- Xử lý đúng nghiệp vụ tài chính và cập nhật số dư.
+- Kiểm thử các chức năng quan trọng.
+- Viết tài liệu hướng dẫn cài đặt và chạy dự án.
+
+Nếu có quyền sử dụng terminal, hãy trực tiếp tạo file, cài đặt thư viện, chạy ứng dụng, kiểm tra lỗi và sửa lỗi. Không chỉ cung cấp code minh họa.
+
+Không tự ý bỏ qua chức năng quan trọng. Nếu một yêu cầu chưa rõ, hãy chọn giải pháp đơn giản, nhất quán và ghi lại giả định trong tài liệu.
+
+---
+
+## 2. MỤC TIÊU DỰ ÁN
+
+FinTrack là website giúp người dùng quản lý tài chính cá nhân thông qua một giao diện dashboard trực quan.
+
+Người dùng có thể:
+- Quản lý thu nhập và chi tiêu.
+- Theo dõi số dư tài khoản.
+- Quản lý nhiều tài khoản tiền mặt hoặc ngân hàng.
+- Phân loại giao dịch.
+- Quản lý ngân sách theo danh mục.
+- Theo dõi các khoản vay và khoản cho người khác vay.
+- Xem biểu đồ và báo cáo tài chính.
+- Tìm kiếm, lọc và xuất dữ liệu giao dịch.
+- Nhận thông báo khi gần vượt ngân sách hoặc đến hạn trả nợ.
+- Quản lý hồ sơ và cài đặt cá nhân.
+
+Mỗi người dùng chỉ được xem và thao tác dữ liệu tài chính thuộc tài khoản của mình.
+
+Ngôn ngữ giao diện mặc định: tiếng Việt.
+
+Tiền tệ mặc định: VND.
+
+Tên dự án hiển thị trên giao diện: FinTrack.
+
+---
+
+## 3. CÔNG NGHỆ BẮT BUỘC
+
+### 3.1. Frontend
+
+Sử dụng:
+- React.
+- TypeScript.
+- Vite.
+- Tailwind CSS.
+- React Router DOM.
+- Axios.
+- Recharts.
+- React Hook Form.
+- Zod.
+- Lucide React.
+
+Nhiệm vụ frontend:
+- Xây dựng giao diện responsive.
+- Quản lý routing.
+- Quản lý trạng thái đăng nhập.
+- Gọi backend thông qua REST API.
+- Validate form.
+- Hiển thị loading, error, empty state và success message.
+- Cập nhật dữ liệu dashboard sau khi thực hiện giao dịch thành công.
+
+Không hardcode dữ liệu tài chính trên giao diện chính thức. Dữ liệu mẫu chỉ được sử dụng thông qua seed script hoặc demo mode được xác định rõ.
+
+### 3.2. Backend
+
+Sử dụng:
+- Node.js.
+- Express.js.
+- TypeScript.
+- Mongoose ODM.
+- JWT authentication.
+- bcrypt để băm mật khẩu.
+- Zod để kiểm tra dữ liệu đầu vào.
+- dotenv để quản lý biến môi trường.
+- Helmet và CORS để cấu hình bảo mật phù hợp.
+- Morgan hoặc thư viện logging tương đương.
+
+Nhiệm vụ backend:
+- Xử lý REST API.
+- Xác thực và phân quyền.
+- Kiểm tra dữ liệu đầu vào.
+- Thực hiện nghiệp vụ tài chính.
+- Truy vấn và cập nhật MongoDB.
+- Trả về response thống nhất.
+- Xử lý lỗi tập trung.
+- Ngăn truy cập dữ liệu trái phép.
+- Cung cấp API thống kê và báo cáo.
+
+### 3.3. Database
+
+Sử dụng:
+- MongoDB.
+- MongoDB Atlas hoặc MongoDB local.
+- Mongoose schemas và models.
+- MongoDB indexes.
+- Mongoose validation.
+- MongoDB transactions khi môi trường hỗ trợ.
+
+Không sử dụng MySQL, PostgreSQL, Prisma hoặc Firebase làm database chính.
+
+Không lưu dữ liệu giao dịch chính thức chỉ trong localStorage.
+
+### 3.4. Công cụ kiểm thử
+
+- Vitest cho unit test.
+- Supertest cho API integration test.
+- ESLint.
+- Prettier.
+
+Không bắt buộc sử dụng Docker.
+
+---
+
+## 4. CẤU TRÚC DỰ ÁN
+
+Tổ chức dự án theo cấu trúc dễ hiểu:
+
+fintrack/
+  client/
+    src/
+      assets/
+      components/
+        common/
+        layout/
+        dashboard/
+        transactions/
+        accounts/
+        categories/
+        budgets/
+        debts/
+        reports/
+      pages/
+      layouts/
+      hooks/
+      services/
+      contexts/
+      schemas/
+      types/
+      utils/
+      App.tsx
+      main.tsx
+    public/
+    .env.example
+    package.json
+
+  server/
+    src/
+      config/
+      controllers/
+      services/
+      models/
+      routes/
+      middlewares/
+      validators/
+      utils/
+      jobs/
+      types/
+      app.ts
+      server.ts
+    tests/
+    .env.example
+    package.json
+
+  docs/
+    use-cases.md
+    database-design.md
+    api-documentation.md
+
+  README.md
+
+Có thể điều chỉnh cấu trúc nếu cần, nhưng phải phân chia rõ:
+- UI components.
+- Business logic.
+- API controllers.
+- Database models.
+- Authentication middleware.
+- Validation.
+- Error handling.
+
+Không viết toàn bộ dự án trong một file.
+
+---
+
+## 5. THIẾT KẾ GIAO DIỆN THEO HÌNH ẢNH THAM KHẢO
+
+Sử dụng hình ảnh dashboard người dùng cung cấp làm cơ sở thiết kế.
+
+### 5.1. Phong cách
+
+- Hiện đại, tối giản và chuyên nghiệp.
+- Background xanh xám nhạt.
+- Card trắng, bo góc vừa phải.
+- Sidebar bên trái.
+- Header có ô tìm kiếm, nút thêm giao dịch, thông báo và avatar.
+- Màu xanh dương là màu chủ đạo.
+- Màu xanh lá biểu thị thu nhập.
+- Màu đỏ/cam biểu thị chi tiêu hoặc cảnh báo.
+- Font chữ rõ ràng.
+- Khoảng cách giữa các thành phần thoáng.
+- Biểu đồ dễ đọc.
+- Hiệu ứng hover nhẹ.
+- Responsive cho desktop, tablet và mobile.
+
+Tạo logo FinTrack riêng, không sử dụng logo của thương hiệu khác.
+
+### 5.2. Header
+
+Bao gồm:
+- Logo hoặc tên FinTrack.
+- Ô tìm kiếm.
+- Nút Add Transaction.
+- Icon thông báo.
+- Avatar người dùng.
+- Menu hồ sơ và đăng xuất.
+
+Nút Add Transaction phải mở form tạo giao dịch thực sự.
+
+Ô tìm kiếm phải thực hiện tìm kiếm dữ liệu, không chỉ là thành phần trang trí.
+
+### 5.3. Sidebar
+
+Bao gồm:
+1. Dashboard.
+2. Transactions.
+3. Accounts.
+4. Categories.
+5. Budgets.
+6. Debts & Loans.
+7. Reports.
+8. Settings.
+
+Mỗi mục có icon và trạng thái active.
+
+Mọi mục phải điều hướng đến trang tương ứng.
+
+### 5.4. Dashboard
+
+Ba thẻ tổng quan:
+- Total Income.
+- Total Expenses.
+- Current Balance.
+
+Biểu đồ đường:
+- Thu nhập theo tháng.
+- Chi tiêu theo tháng.
+- Bộ lọc thời gian.
+
+Biểu đồ doughnut:
+- Phân bố chi tiêu theo danh mục hoặc cơ cấu tài chính được xác định rõ.
+- Không cộng các đại lượng khác bản chất như số dư, khoản vay và khoản nợ vào một biểu đồ tỷ trọng nếu chúng không cùng một mẫu số có ý nghĩa.
+
+Khu vực Recent Transactions:
+- Tên giao dịch.
+- Số tiền.
+- Loại giao dịch.
+- Danh mục.
+- Tài khoản.
+- Ngày.
+- Nút Details.
+
+Khu vực cảnh báo:
+- Ngân sách gần đạt giới hạn.
+- Ngân sách vượt giới hạn.
+- Khoản nợ sắp đến hạn.
+- Khoản nợ quá hạn.
+
+Các con số phải được lấy từ API và MongoDB.
+
+Dashboard phải phản ánh thay đổi sau khi giao dịch được thêm, sửa hoặc xóa.
+
+### 5.5. Responsive
+
+Desktop:
+- Sidebar cố định.
+- Ba thẻ thống kê trên cùng một hàng khi đủ không gian.
+- Biểu đồ bố trí theo lưới.
+
+Tablet:
+- Các card và biểu đồ tự xuống dòng.
+
+Mobile:
+- Sidebar chuyển thành drawer hoặc bottom navigation.
+- Bảng giao dịch chuyển thành danh sách card hoặc có cuộn ngang hợp lý.
+- Form sử dụng chiều rộng màn hình.
+- Không để nội dung bị tràn ngang.
+
+---
+
+## 6. DANH SÁCH CHỨC NĂNG
+
+### 6.1. Authentication
+
+- UC01: Register.
+- UC02: Login.
+- UC03: Logout.
+- UC04: Manage Profile.
+
+Quy tắc:
+- Email duy nhất.
+- Mật khẩu phải được hash bằng bcrypt.
+- Không trả password hoặc password hash về frontend.
+- Bảo vệ các route yêu cầu đăng nhập.
+- Kiểm tra quyền tại backend.
+- Không tin userId do client gửi lên.
+- Xác định userId từ thông tin xác thực đã được kiểm tra.
+- Nếu sử dụng JWT, ưu tiên cơ chế lưu trữ token an toàn; nếu dùng cookie thì cấu hình HttpOnly, Secure khi chạy HTTPS và SameSite phù hợp.
+- Không ghi token hoặc thông tin bí mật vào log.
+
+### 6.2. Dashboard
+
+- UC05: View Dashboard.
+- UC18: Calculate Financial Summary.
+- UC19: Retrieve Recent Transactions.
+- UC20: Retrieve Chart Data.
+
+Hiển thị:
+- Tổng thu nhập trong kỳ.
+- Tổng chi tiêu trong kỳ.
+- Số dư hiện tại.
+- Thu nhập và chi tiêu theo tháng.
+- Chi tiêu theo danh mục.
+- Giao dịch gần đây.
+- Cảnh báo ngân sách.
+- Cảnh báo khoản vay và khoản nợ.
+
+Bộ lọc thời gian:
+- Tháng hiện tại.
+- 3 tháng gần nhất.
+- 6 tháng gần nhất.
+- Năm hiện tại.
+- Khoảng ngày tùy chỉnh.
+
+Phải quy định thống nhất múi giờ và cách tính ngày bắt đầu/kết thúc.
+
+### 6.3. Quản lý giao dịch
+
+UC06: Manage Transactions.
+
+Chức năng:
+- Tạo giao dịch.
+- Xem danh sách.
+- Xem chi tiết.
+- Chỉnh sửa.
+- Xóa.
+- Tìm kiếm.
+- Lọc.
+- Sắp xếp.
+- Phân trang.
+
+Loại giao dịch:
+- INCOME.
+- EXPENSE.
+- TRANSFER.
+
+Thông tin:
+- title.
+- amount.
+- type.
+- categoryId.
+- accountId.
+- destinationAccountId nếu là TRANSFER.
+- transactionDate.
+- note.
+- createdAt.
+- updatedAt.
+
+Validation:
+- Amount phải lớn hơn 0.
+- Danh mục phải phù hợp với loại giao dịch.
+- Tài khoản phải thuộc người dùng hiện tại.
+- Tài khoản nguồn và đích phải khác nhau.
+- Không cho phép giao dịch tham chiếu tài khoản đã lưu trữ nếu nghiệp vụ không cho phép.
+- Không cho phép sửa/xóa giao dịch của người dùng khác.
+
+Khi tạo, sửa hoặc xóa giao dịch, phải cập nhật ảnh hưởng tài chính chính xác và đồng bộ dữ liệu dashboard.
+
+### 6.4. Quản lý tài khoản
+
+UC08: Manage Accounts.
+
+Hỗ trợ:
+- Cash.
+- Bank Account.
+- E-wallet.
+- Other.
+
+Chức năng:
+- Tạo tài khoản.
+- Xem danh sách.
+- Xem chi tiết.
+- Sửa tên và loại tài khoản.
+- Xem số dư.
+- Xem lịch sử giao dịch.
+- Lưu trữ tài khoản.
+
+Thông tin:
+- userId.
+- name.
+- type.
+- openingBalance.
+- currency.
+- isArchived.
+- createdAt.
+- updatedAt.
+
+Số dư hiện tại phải được tính từ số dư ban đầu và ảnh hưởng của các giao dịch hợp lệ, hoặc từ một cơ chế số dư được cập nhật có kiểm soát và có thể đối soát.
+
+Không xóa tài khoản nếu làm mất lịch sử giao dịch tài chính.
+
+### 6.5. Quản lý danh mục
+
+UC09: Manage Categories.
+
+Danh mục chi tiêu mẫu:
+- Food.
+- Transportation.
+- Education.
+- Shopping.
+- Entertainment.
+- Healthcare.
+- Housing.
+- Other.
+
+Danh mục thu nhập mẫu:
+- Salary.
+- Allowance.
+- Freelance.
+- Investment.
+- Other Income.
+
+Chức năng:
+- Thêm danh mục.
+- Sửa danh mục.
+- Xem danh sách.
+- Lọc theo loại.
+- Chọn icon và màu.
+- Lưu trữ danh mục.
+
+Danh mục có thể là:
+- Danh mục hệ thống.
+- Danh mục riêng của người dùng.
+
+Không cho phép người dùng sửa hoặc xóa danh mục hệ thống trái phép.
+
+Không xóa danh mục đang được sử dụng mà không xử lý các tham chiếu liên quan.
+
+### 6.6. Quản lý ngân sách
+
+UC10: Manage Budgets.
+
+Chức năng:
+- Tạo ngân sách theo kỳ.
+- Chọn danh mục.
+- Đặt giới hạn.
+- Xem số tiền đã chi.
+- Xem số tiền còn lại.
+- Xem phần trăm sử dụng.
+- Cảnh báo ngân sách.
+
+Công thức:
+
+Spent = tổng EXPENSE hợp lệ của danh mục trong kỳ.
+
+Remaining = Budget Limit - Spent.
+
+Usage Percentage = Spent / Budget Limit × 100%.
+
+Không tính INCOME hoặc TRANSFER vào chi tiêu ngân sách.
+
+Không cho phép tạo ngân sách trùng phạm vi nếu quy tắc nghiệp vụ không cho phép.
+
+Cần xử lý trường hợp ngân sách bằng 0 và trường hợp không có giao dịch.
+
+### 6.7. Quản lý khoản vay và nợ
+
+UC11: Manage Debts and Loans.
+
+UC12: Record Debt Payment.
+
+Loại:
+- BORROWED: người dùng vay tiền.
+- LENT: người dùng cho người khác vay.
+
+Thông tin:
+- personName.
+- type.
+- principalAmount.
+- startDate.
+- dueDate.
+- note.
+- status.
+
+Mỗi khoản nợ có lịch sử thanh toán riêng.
+
+Thông tin thanh toán:
+- debtId.
+- amount.
+- paymentDate.
+- accountId nếu thanh toán qua tài khoản.
+- note.
+
+Công thức:
+
+Outstanding Amount = Principal Amount - tổng thanh toán/thu hồi hợp lệ.
+
+Không cho phép số tiền thanh toán vượt số dư khoản nợ còn lại, trừ khi có nghiệp vụ hoàn tiền được định nghĩa riêng.
+
+Khi thanh toán thực tế qua tài khoản:
+- BORROWED: thanh toán làm giảm tiền trong tài khoản và giảm nghĩa vụ nợ.
+- LENT: thu hồi tiền làm tăng tiền trong tài khoản và giảm khoản phải thu.
+
+Không tự động tính tiền vay là thu nhập hoặc tiền cho vay là chi tiêu tiêu dùng.
+
+Các thao tác cập nhật khoản nợ, lịch sử thanh toán và số dư tài khoản phải nhất quán.
+
+### 6.8. Báo cáo
+
+UC13: View Reports.
+
+UC14: Export Report.
+
+Báo cáo:
+- Thu nhập theo tháng.
+- Chi tiêu theo tháng.
+- Chi tiêu theo danh mục.
+- So sánh thu và chi.
+- Số dư theo tài khoản.
+- Lịch sử giao dịch.
+- Ngân sách đã sử dụng.
+
+Bộ lọc:
+- Từ ngày.
+- Đến ngày.
+- Loại giao dịch.
+- Tài khoản.
+- Danh mục.
+
+Cho phép xuất CSV.
+
+Không xuất dữ liệu của người dùng khác.
+
+### 6.9. Thông báo
+
+UC15: Manage Notifications.
+
+Thông báo:
+- Ngân sách gần đạt giới hạn.
+- Ngân sách vượt giới hạn.
+- Khoản nợ sắp đến hạn.
+- Khoản nợ quá hạn.
+
+Chức năng:
+- Xem danh sách.
+- Đánh dấu đã đọc.
+- Hiển thị số thông báo chưa đọc.
+
+Nếu có background job, phải tránh tạo thông báo trùng lặp cho cùng một sự kiện và cùng kỳ kiểm tra.
+
+### 6.10. Settings
+
+UC16: Manage Settings.
+
+- Cập nhật hồ sơ.
+- Cập nhật tiền tệ mặc định.
+- Chọn giao diện sáng/tối.
+- Đổi mật khẩu.
+- Đăng xuất.
+
+Các tùy chọn giao diện không nhạy cảm có thể được lưu ở frontend; dữ liệu tài khoản và bảo mật phải được xử lý đúng ở backend.
+
+---
+
+## 7. THIẾT KẾ MONGODB VÀ MONGOOSE MODELS
+
+Sử dụng MongoDB document model với các collection riêng.
+
+### 7.1. User
+
+Collection: users.
+
+Fields:
+- _id: ObjectId.
+- name: String.
+- email: String, unique, lowercase, trimmed.
+- passwordHash: String, required.
+- avatarUrl: String, optional.
+- defaultCurrency: String, default VND.
+- createdAt.
+- updatedAt.
+
+Sử dụng timestamps của Mongoose.
+
+### 7.2. Account
+
+Collection: accounts.
+
+Fields:
+- _id.
+- userId: ObjectId, ref User.
+- name.
+- type: CASH, BANK, EWALLET, OTHER.
+- openingBalance: Decimal128 hoặc chiến lược lưu tiền tệ chính xác đã được quy định.
+- currency.
+- isArchived.
+- createdAt.
+- updatedAt.
+
+Index đề xuất:
+- { userId: 1, isArchived: 1 }.
+
+### 7.3. Category
+
+Collection: categories.
+
+Fields:
+- _id.
+- userId: ObjectId, nullable với danh mục hệ thống.
+- name.
+- type: INCOME hoặc EXPENSE.
+- icon.
+- color.
+- isSystem.
+- isArchived.
+- createdAt.
+- updatedAt.
+
+Không dùng userId null làm căn cứ duy nhất để bỏ qua kiểm tra quyền. Phải xác định rõ phạm vi danh mục hệ thống và danh mục cá nhân.
+
+### 7.4. Transaction
+
+Collection: transactions.
+
+Fields:
+- _id.
+- userId: ObjectId, ref User.
+- type: INCOME, EXPENSE hoặc TRANSFER.
+- title.
+- amount.
+- categoryId: ObjectId, nullable với TRANSFER.
+- accountId: ObjectId.
+- destinationAccountId: ObjectId, nullable.
+- transactionDate.
+- note.
+- createdAt.
+- updatedAt.
+
+Index đề xuất:
+- { userId: 1, transactionDate: -1 }.
+- { userId: 1, type: 1, transactionDate: -1 }.
+- { userId: 1, categoryId: 1, transactionDate: -1 }.
+- { userId: 1, accountId: 1, transactionDate: -1 }.
+
+Dữ liệu amount phải có quy ước tiền tệ chính xác. Không dựa vào số thực IEEE 754 để tính tiền.
+
+### 7.5. Budget
+
+Collection: budgets.
+
+Fields:
+- _id.
+- userId: ObjectId, ref User.
+- categoryId: ObjectId, ref Category.
+- amountLimit.
+- periodStart.
+- periodEnd.
+- createdAt.
+- updatedAt.
+
+Tạo unique index hoặc cơ chế kiểm tra ở service để tránh ngân sách trùng phạm vi theo userId, categoryId và kỳ ngân sách.
+
+### 7.6. Debt
+
+Collection: debts.
+
+Fields:
+- _id.
+- userId: ObjectId, ref User.
+- personName.
+- type: BORROWED hoặc LENT.
+- principalAmount.
+- startDate.
+- dueDate.
+- note.
+- status.
+- createdAt.
+- updatedAt.
+
+### 7.7. DebtPayment
+
+Collection: debtPayments.
+
+Fields:
+- _id.
+- userId: ObjectId, ref User.
+- debtId: ObjectId, ref Debt.
+- amount.
+- paymentDate.
+- accountId: ObjectId, nullable.
+- note.
+- createdAt.
+
+Lưu userId trên payment để hỗ trợ kiểm tra quyền và truy vấn. Tuy nhiên, backend vẫn phải xác nhận payment tham chiếu khoản nợ thuộc cùng user.
+
+### 7.8. Notification
+
+Collection: notifications.
+
+Fields:
+- _id.
+- userId: ObjectId, ref User.
+- type.
+- title.
+- message.
+- isRead.
+- deduplicationKey: String, nếu cần ngăn thông báo trùng.
+- createdAt.
+
+Index:
+- { userId: 1, isRead: 1, createdAt: -1 }.
+
+### 7.9. Quan hệ collection
+
+- Một User có nhiều Accounts.
+- Một User có nhiều Transactions.
+- Một User có nhiều Categories cá nhân.
+- Một User có nhiều Budgets.
+- Một User có nhiều Debts.
+- Một Debt có nhiều DebtPayments.
+- Một User có nhiều Notifications.
+- Một Account có nhiều Transactions.
+- Một Category có nhiều Transactions.
+- Một Category có thể có nhiều Budgets ở các kỳ khác nhau.
+
+Sử dụng ObjectId references cho các thực thể có vòng đời độc lập và lịch sử riêng.
+
+Không nhúng toàn bộ giao dịch vào một document Account vì danh sách giao dịch có thể tăng không giới hạn.
+
+Không nhúng toàn bộ lịch sử thanh toán vào một Debt document nếu lịch sử có thể tăng không giới hạn; sử dụng collection DebtPayment riêng.
+
+MongoDB không tự đảm bảo mọi quan hệ tham chiếu tồn tại và hợp lệ như foreign key trong SQL. Backend phải kiểm tra tính tồn tại, quyền sở hữu và tính hợp lệ của các ObjectId.
+
+---
+
+## 8. QUAN HỆ GIỮA CÁC USE CASE
+
+Sử dụng ký hiệu UML:
+- «include»: use case bắt buộc gọi hành vi dùng chung.
+- «extend»: hành vi bổ sung chỉ xảy ra khi điều kiện thỏa mãn.
+
+### 8.1. Actors
+
+Guest:
+- UC01 Register.
+- UC02 Login.
+
+Authenticated User:
+- UC03 Logout.
+- UC04 Manage Profile.
+- UC05 View Dashboard.
+- UC06 Manage Transactions.
+- UC07 Search and Filter Transactions.
+- UC08 Manage Accounts.
+- UC09 Manage Categories.
+- UC10 Manage Budgets.
+- UC11 Manage Debts and Loans.
+- UC12 Record Debt Payment.
+- UC13 View Reports.
+- UC14 Export Report.
+- UC15 Manage Notifications.
+- UC16 Manage Settings.
+- UC17 Transfer Money.
+
+Scheduler:
+- Kiểm tra ngân sách và hạn khoản nợ nếu có background job.
+
+### 8.2. Use case dùng chung
+
+UC18 Calculate Financial Summary.
+
+UC19 Retrieve Recent Transactions.
+
+UC20 Retrieve Chart Data.
+
+UC21 Show Budget Warnings.
+
+UC22 Show Debt Due Warnings.
+
+UC23 Validate Transaction.
+
+UC24 Apply Balance Change.
+
+UC25 Calculate Budget Usage.
+
+UC26 Calculate Outstanding Debt.
+
+### 8.3. Quan hệ cụ thể
+
+UC05 View Dashboard:
+- «include» UC18.
+- «include» UC19.
+- «include» UC20.
+- «extend» UC21 khi có cảnh báo ngân sách.
+- «extend» UC22 khi có khoản nợ cần cảnh báo.
+
+UC06 Manage Transactions:
+- «include» UC23.
+- «include» UC24 đối với thao tác ảnh hưởng số dư.
+- «extend» UC07 khi người dùng tìm kiếm hoặc lọc giao dịch.
+- Sau khi thao tác thành công, các dữ liệu dashboard và báo cáo phải phản ánh thay đổi.
+
+UC17 Transfer Money:
+- «include» UC23.
+- «include» UC24.
+- Tài khoản nguồn và đích phải khác nhau.
+- Cả hai tài khoản phải thuộc người dùng.
+- Không tính transfer thành income hoặc expense.
+
+UC10 Manage Budgets:
+- «include» UC25.
+- «extend» UC21 khi gần hoặc vượt hạn mức.
+
+UC11 Manage Debts and Loans:
+- «include» UC26.
+- Có liên kết nghiệp vụ với UC12 Record Debt Payment.
+- «extend» UC22 khi sắp đến hạn hoặc quá hạn.
+
+UC13 View Reports:
+- «include» UC18.
+- «include» UC20.
+- «extend» UC14 khi người dùng xuất báo cáo.
+
+UC04 Manage Profile và UC16 Manage Settings:
+- Chỉ dành cho người dùng đã xác thực.
+- UC04 quản lý hồ sơ.
+- UC16 quản lý tùy chọn và bảo mật.
+
+UC03 Logout:
+- Kết thúc phiên hoặc vô hiệu hóa cơ chế xác thực đang sử dụng.
+
+Lưu ý: sơ đồ use case không thay thế quy trình gọi service trong code. Các hành vi dùng chung phải được triển khai bằng service hoặc hàm nghiệp vụ phù hợp; không tạo vòng lặp phụ thuộc giữa các service.
+
+---
+
+## 9. QUY TẮC NGHIỆP VỤ TÀI CHÍNH
+
+### 9.1. Income và Expense
+
+INCOME:
+- Tăng số dư tài khoản.
+- Được tính vào tổng thu nhập theo kỳ.
+- Không phải chi tiêu ngân sách.
+
+EXPENSE:
+- Giảm số dư tài khoản.
+- Được tính vào tổng chi tiêu theo kỳ.
+- Có thể được tính vào ngân sách nếu danh mục và ngày phù hợp.
+
+TRANSFER:
+- Giảm số dư tài khoản nguồn.
+- Tăng số dư tài khoản đích.
+- Không tính vào tổng thu nhập hoặc tổng chi tiêu.
+
+### 9.2. Công thức
+
+Total Income = tổng INCOME hợp lệ trong khoảng ngày.
+
+Total Expenses = tổng EXPENSE hợp lệ trong khoảng ngày.
+
+Current Balance = tổng số dư hiện tại của các tài khoản thuộc người dùng.
+
+Account Balance = Opening Balance + tổng tác động số dư từ các giao dịch hợp lệ của tài khoản.
+
+Budget Spent = tổng EXPENSE của danh mục trong kỳ ngân sách.
+
+Debt Outstanding = Principal Amount - tổng DebtPayment hợp lệ.
+
+### 9.3. Chỉnh sửa và xóa giao dịch
+
+Khi sửa hoặc xóa giao dịch, phải xử lý ảnh hưởng của dữ liệu cũ trước khi áp dụng dữ liệu mới.
+
+Không được cộng/trừ số dư hai lần.
+
+Ví dụ:
+- Giao dịch EXPENSE cũ giảm tài khoản 100.000 VND.
+- Sửa giao dịch thành 150.000 VND.
+- Hệ thống phải hoàn tác ảnh hưởng cũ và áp dụng ảnh hưởng mới chính xác.
+- Nếu xóa giao dịch, số dư phải trở về trạng thái tương ứng trước khi giao dịch được ghi nhận.
+
+### 9.4. Tính nhất quán dữ liệu
+
+Với thao tác tạo, sửa, xóa giao dịch và ghi nhận thanh toán nợ:
+- Kiểm tra dữ liệu đầu vào.
+- Kiểm tra quyền sở hữu.
+- Xử lý các thay đổi liên quan theo một quy trình nhất quán.
+- Nếu cập nhật nhiều document, dùng MongoDB transaction khi môi trường hỗ trợ.
+- Nếu môi trường không hỗ trợ transaction, không được âm thầm giả định nhiều thao tác ghi đã nguyên tử; phải thiết kế cơ chế đảm bảo nhất quán và hướng dẫn cấu hình MongoDB replica set khi cần.
+
+Nếu chọn lưu số dư tài khoản dạng cached balance, phải đảm bảo cập nhật nguyên tử, xử lý retry và có công cụ đối soát số dư với sổ giao dịch.
+
+Đối với phiên bản đồ án, có thể tính số dư từ openingBalance và các giao dịch để đơn giản hóa tính đúng đắn, sau đó tối ưu nếu thực sự cần.
+
+### 9.5. Tiền tệ
+
+- Dùng Decimal128 hoặc cơ chế lưu số tiền chính xác.
+- Chuẩn hóa cách chuyển dữ liệu giữa MongoDB, backend và frontend.
+- Không thực hiện phép tính tài chính dựa trên floating-point không được kiểm soát.
+- Không cộng trực tiếp số tiền của các loại tiền tệ khác nhau.
+- Mặc định VND.
+- Format tiền theo vi-VN.
+
+### 9.6. Ngày giờ
+
+- Dùng một quy ước lưu ngày giờ thống nhất.
+- Lưu timestamp theo UTC khi phù hợp.
+- Xác định rõ múi giờ hiển thị, mặc định Asia/Ho_Chi_Minh.
+- Bộ lọc ngày phải bao gồm đúng phạm vi đầu và cuối.
+- Báo cáo theo tháng không được bỏ sót giao dịch cuối tháng.
+
+---
+
+## 10. API ENDPOINTS
+
+Tất cả endpoint nghiệp vụ nằm dưới /api/v1.
+
+### Authentication
+
+POST /api/v1/auth/register
+
+POST /api/v1/auth/login
+
+POST /api/v1/auth/logout
+
+GET /api/v1/auth/me
+
+PATCH /api/v1/users/profile
+
+PATCH /api/v1/users/change-password
+
+### Dashboard
+
+GET /api/v1/dashboard/summary
+
+GET /api/v1/dashboard/charts
+
+GET /api/v1/dashboard/recent-transactions
+
+### Transactions
+
+GET /api/v1/transactions
+
+POST /api/v1/transactions
+
+GET /api/v1/transactions/:id
+
+PATCH /api/v1/transactions/:id
+
+DELETE /api/v1/transactions/:id
+
+POST /api/v1/transactions/transfer
+
+GET /api/v1/transactions/export
+
+### Accounts
+
+GET /api/v1/accounts
+
+POST /api/v1/accounts
+
+GET /api/v1/accounts/:id
+
+PATCH /api/v1/accounts/:id
+
+PATCH /api/v1/accounts/:id/archive
+
+GET /api/v1/accounts/:id/transactions
+
+### Categories
+
+GET /api/v1/categories
+
+POST /api/v1/categories
+
+PATCH /api/v1/categories/:id
+
+PATCH /api/v1/categories/:id/archive
+
+### Budgets
+
+GET /api/v1/budgets
+
+POST /api/v1/budgets
+
+GET /api/v1/budgets/:id
+
+PATCH /api/v1/budgets/:id
+
+DELETE /api/v1/budgets/:id
+
+GET /api/v1/budgets/:id/usage
+
+### Debts
+
+GET /api/v1/debts
+
+POST /api/v1/debts
+
+GET /api/v1/debts/:id
+
+PATCH /api/v1/debts/:id
+
+GET /api/v1/debts/:id/payments
+
+POST /api/v1/debts/:id/payments
+
+### Reports
+
+GET /api/v1/reports/summary
+
+GET /api/v1/reports/income-expense
+
+GET /api/v1/reports/category-expenses
+
+GET /api/v1/reports/export
+
+### Notifications
+
+GET /api/v1/notifications
+
+PATCH /api/v1/notifications/:id/read
+
+PATCH /api/v1/notifications/read-all
+
+### Settings
+
+GET /api/v1/settings
+
+PATCH /api/v1/settings
+
+Đây là API contract ban đầu. Có thể điều chỉnh nếu cần, nhưng phải cập nhật nhất quán giữa routes, controllers, frontend services và tài liệu.
+
+Mỗi endpoint phải có:
+- Authentication nếu cần.
+- Validation.
+- Authorization.
+- Business logic.
+- Error handling.
+- Response JSON thống nhất.
+
+Sử dụng HTTP status code phù hợp.
+
+Phân trang dùng query parameters như page, limit, sortBy và order.
+
+Các bộ lọc ngày phải được validate.
+
+---
+
+## 11. BẢO MẬT VÀ VALIDATION
+
+Bắt buộc:
+- Xác thực ở backend.
+- Kiểm tra quyền sở hữu tài nguyên.
+- Validate tất cả request body, params và query.
+- Hash mật khẩu.
+- Không trả passwordHash.
+- Không tin dữ liệu userId từ client.
+- Giới hạn dữ liệu trả về và phân trang.
+- Chống truy vấn MongoDB không an toàn bằng cách validate kiểu dữ liệu và không chuyển trực tiếp input tùy ý vào MongoDB operators.
+- Cấu hình CORS theo môi trường.
+- Sử dụng environment variables cho secrets.
+- Không commit file .env.
+- Không để lỗi nội bộ hoặc stack trace nhạy cảm lộ ra production.
+- Xử lý lỗi duplicate email và lỗi ObjectId không hợp lệ.
+- Ngăn sửa dữ liệu của người khác bằng cách kết hợp ID tài nguyên và userId trong truy vấn khi phù hợp.
+
+Không cần triển khai hệ thống phân quyền phức tạp nhiều vai trò trong phiên bản đầu.
+
+---
+
+## 12. SEED DATA VÀ DEMO
+
+Tạo script seed để:
+- Tạo một tài khoản demo.
+- Tạo các danh mục thu và chi mẫu.
+- Tạo nhiều tài khoản tài chính.
+- Tạo dữ liệu giao dịch của nhiều tháng.
+- Tạo một số ngân sách.
+- Tạo một số khoản vay và khoản nợ.
+- Tạo dữ liệu thông báo.
+
+Seed script phải có thể chạy lại an toàn mà không tạo dữ liệu trùng lặp không kiểm soát.
+
+Thông tin đăng nhập demo phải được ghi trong README sau khi tạo thành công.
+
+Không sử dụng dữ liệu demo để thay thế dữ liệu người dùng đã đăng nhập.
+
+---
+
+## 13. KIỂM THỬ BẮT BUỘC
+
+Kiểm thử:
+- Đăng ký và đăng nhập.
+- Email trùng.
+- Request thiếu trường bắt buộc.
+- Tạo giao dịch thu.
+- Tạo giao dịch chi.
+- Chuyển tiền giữa hai tài khoản.
+- Sửa giao dịch.
+- Xóa giao dịch.
+- Kiểm tra số dư trước và sau giao dịch.
+- Kiểm tra lọc theo ngày.
+- Kiểm tra tính ngân sách.
+- Ghi nhận thanh toán khoản nợ.
+- Ngăn truy cập dữ liệu người dùng khác.
+- Xuất CSV.
+- Xử lý ID không tồn tại.
+- Xử lý lỗi database.
+
+Các test nghiệp vụ tài chính phải kiểm tra kết quả số tiền cụ thể, không chỉ kiểm tra HTTP 200.
+
+---
+
+## 14. TIÊU CHÍ HOÀN THÀNH
+
+Dự án chỉ được xem là hoàn thành khi:
+
+1. Frontend và backend chạy được.
+2. MongoDB kết nối thành công.
+3. Người dùng đăng ký và đăng nhập được.
+4. Giao diện dashboard hiển thị dữ liệu thực.
+5. CRUD giao dịch hoạt động.
+6. CRUD tài khoản và danh mục hoạt động.
+7. Số dư được tính chính xác.
+8. Chuyển tiền không bị tính thành thu nhập hoặc chi tiêu.
+9. Ngân sách và khoản nợ được tính đúng.
+10. Báo cáo có thể lọc và xuất CSV.
+11. Dữ liệu người dùng được phân tách và bảo vệ.
+12. Các lỗi phổ biến được xử lý.
+13. Các trang có loading, error và empty states.
+14. Có seed script.
+15. Có README hướng dẫn đầy đủ.
+16. Có tài liệu database, API và use case.
+17. Các test nghiệp vụ quan trọng chạy thành công.
+
+Không đánh dấu một chức năng là hoàn thành nếu mới có giao diện nhưng chưa kết nối API.
+
+Không để lại nút bấm giả, API giả hoặc dữ liệu hardcode trong các luồng nghiệp vụ chính.
+
+---
+
+## 15. THỨ TỰ TRIỂN KHAI
+
+Thực hiện theo từng giai đoạn:
+
+Phase 1:
+- Khởi tạo frontend và backend.
+- Cấu hình MongoDB.
+- Tạo cấu trúc thư mục.
+- Cấu hình environment variables.
+- Tạo Mongoose models.
+
+Phase 2:
+- Authentication.
+- Middleware xác thực và phân quyền.
+- Quản lý tài khoản.
+- Quản lý danh mục.
+
+Phase 3:
+- Quản lý giao dịch.
+- Chuyển tiền.
+- Xử lý số dư.
+- Kiểm thử nghiệp vụ tài chính.
+
+Phase 4:
+- Dashboard.
+- Biểu đồ.
+- Tìm kiếm và lọc.
+- Báo cáo.
+
+Phase 5:
+- Ngân sách.
+- Khoản vay và khoản nợ.
+- Thanh toán.
+- Thông báo.
+
+Phase 6:
+- Settings.
+- Hoàn thiện responsive UI.
+- Xử lý loading, error và empty states.
+- Hoàn thiện seed data.
+
+Phase 7:
+- Kiểm thử tổng thể.
+- Sửa lỗi.
+- Hoàn thiện README.
+- Hoàn thiện tài liệu use case, database và API.
+
+Sau mỗi phase:
+- Kiểm tra code đã tạo.
+- Chạy type checking và test phù hợp.
+- Sửa lỗi trước khi chuyển sang phase tiếp theo.
+- Không phá vỡ các chức năng đã hoàn thành.
+
+---
+
+## 16. YÊU CẦU ĐẦU RA CUỐI CÙNG
+
+Khi hoàn tất, cung cấp:
+- Toàn bộ source code frontend.
+- Toàn bộ source code backend.
+- MongoDB models.
+- File .env.example.
+- Seed script.
+- Danh sách API.
+- Sơ đồ use case.
+- Sơ đồ quan hệ collection.
+- Tài liệu mô tả nghiệp vụ.
+- Test cases.
+- README hướng dẫn cài đặt và chạy.
+- Thông tin demo nếu seed thành công.
+
+Trước khi kết thúc, hãy tự kiểm tra các luồng chính từ frontend đến API và database.
+
+Ưu tiên tính đúng đắn của nghiệp vụ, sự nhất quán của dữ liệu, khả năng chạy thực tế và cấu trúc dễ hiểu hơn việc sử dụng các kỹ thuật quá phức tạp.
+
+Bắt đầu bằng việc phân tích yêu cầu, lập kế hoạch triển khai và thiết kế database. Sau đó trực tiếp triển khai dự án theo từng phase, không dừng lại ở bản kế hoạch nếu môi trường cho phép viết và chạy code.
