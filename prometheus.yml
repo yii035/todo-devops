@@ -2,6 +2,7 @@ global:
   scrape_interval: 15s
 
 scrape_configs:
-  - job_name: 'node_app'
+  - job_name: 'fintrack_api'
     static_configs:
-      - targets: ['app:3000']
+      - targets: ['app:4010']
+    metrics_path: /metrics

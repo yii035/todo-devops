@@ -32,6 +32,20 @@ The seed command is safe to re-run and creates the demo account `demo@fintrack.l
 
 `server\.env` is local configuration and is ignored by Git. Never commit it or paste database credentials into source files or documentation. The API does not start when MongoDB is unreachable; it will not silently use volatile mock data.
 
+## Run with Docker Compose
+
+Requirements: Docker Engine with the Compose plugin.
+
+```powershell
+Copy-Item .env.example .env
+# Set a unique, long JWT_SECRET in .env
+docker compose up --build -d
+```
+
+Compose starts the FinTrack client/API, a MongoDB replica set for transaction support, and Prometheus. Open `http://localhost:4010` for FinTrack and `http://localhost:9090` for Prometheus. The API health check is available at `http://localhost:4010/api/health`; Prometheus scrapes API metrics at `/metrics`.
+
+To stop the stack, run `docker compose down`. Add `-v` only when you also want to delete the persisted MongoDB and Prometheus data. Keep `.env` local and never commit it.
+
 ## Implemented workflows
 
 - Registration, login, logout, current-user lookup, profile/currency settings, and password changes.
