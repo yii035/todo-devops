@@ -1,0 +1,112 @@
+:root {
+  --bg: #05080d;
+  --panel: rgba(12, 18, 27, 0.9);
+  --node-bg: rgba(17, 61, 109, 0.92);
+  --node-border: rgba(160, 196, 255, 0.9);
+  --node-text: #eef5ff;
+  --connector: rgba(230, 236, 246, 0.8);
+  --connector-soft: rgba(230, 236, 246, 0.35);
+  --shadow: rgba(7, 16, 31, 0.55);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--node-text);
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+body {
+  min-height: 100vh;
+}
+
+.page-shell {
+  width: 100%;
+  min-height: 100vh;
+  background: var(--bg);
+  overflow-x: auto;
+  padding: 16px 12px 28px;
+}
+
+#diagram {
+  position: relative;
+  width: 100%;
+  min-width: 1600px;
+  height: 720px;
+  background: var(--bg);
+}
+
+.flow-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.connector {
+  fill: none;
+  stroke: var(--connector);
+  stroke-width: 2.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.connector-soft {
+  fill: none;
+  stroke: var(--connector-soft);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 8;
+  stroke-linecap: round;
+}
+
+.node {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(22, 83, 143, 0.98), rgba(14, 55, 103, 0.96));
+  border: 1.5px solid var(--node-border);
+  box-shadow: 0 10px 18px var(--shadow);
+  color: var(--node-text);
+  font-size: 15px;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: 0.1px;
+  white-space: normal;
+}
+
+.node.root {
+  font-size: 16px;
+}
+
+.node.small {
+  font-size: 14px;
+}
+
+.node.primary {
+  background: linear-gradient(180deg, rgba(22, 85, 148, 0.96), rgba(14, 59, 105, 0.94));
+}
+
+.node.secondary {
+  background: linear-gradient(180deg, rgba(20, 74, 132, 0.95), rgba(12, 52, 96, 0.92));
+}
+
+.node.warning {
+  background: linear-gradient(180deg, rgba(22, 83, 143, 0.96), rgba(11, 52, 92, 0.94));
+}
+
+.node.label-tag {
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.94;
+}
