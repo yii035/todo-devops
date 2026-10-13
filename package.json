@@ -1,20 +1,23 @@
 {
-  "name": "devops-pipeline",
+  "name": "fintrack",
+  "private": true,
   "version": "1.0.0",
-  "description": "",
-  "main": "src/app.js",
+  "workspaces": [
+    "client",
+    "server"
+  ],
   "scripts": {
-    "start": "node src/app.js",
-    "test": "jest"
+    "dev": "concurrently \"npm run dev --workspace server\" \"npm run dev --workspace client\"",
+    "build": "npm run build --workspace client && npm run build --workspace server",
+    "start": "npm run start --workspace server",
+    "test": "jest --runInBand --runTestsByPath test/app.test.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "express": "^5.2.1",
     "prom-client": "^15.1.3"
   },
   "devDependencies": {
+    "concurrently": "^9.1.2",
     "jest": "^30.5.2",
     "supertest": "^7.3.1"
   }

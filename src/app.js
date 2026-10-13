@@ -1,4 +1,5 @@
 const express = require("express");
+const path = require("path");
 const client = require("prom-client");
 
 const app = express();
@@ -6,10 +7,26 @@ const port = process.env.PORT || 3000;
 
 client.collectDefaultMetrics();
 
+app.use(express.static(path.join(__dirname, "../public")));
+
 app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "../public/index.html"));
+});
+
+app.get("/api/flow", (req, res) => {
     res.json({
-        message: "DevOps Pipeline is running!",
-        version: "1.0.0"
+        title: "Finance Workflow Dashboard",
+        description: "Personal finance and debt management process flow.",
+        nodes: [
+            "Authenticated User",
+            "Manage Budgets",
+            "Manage Categories",
+            "Manage Accounts",
+            "Manage Transactions",
+            "View Dashboard",
+            "View Reports",
+            "Manage Debts & Loans"
+        ]
     });
 });
 

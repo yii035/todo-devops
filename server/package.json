@@ -1,0 +1,33 @@
+{
+  "name": "fintrack-server",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "test": "tsx --test tests/finance.test.ts",
+    "seed": "tsx src/seed.ts",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.8.2",
+    "morgan": "^1.10.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.1",
+    "@types/cors": "^2.8.5",
+    "@types/express": "^5.0.0",
+    "@types/jsonwebtoken": "^9.0.2",
+    "@types/morgan": "^1.9.9",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}

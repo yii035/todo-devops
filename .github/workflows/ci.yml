@@ -5,9 +5,15 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
-  test:
+  build-and-test:
     runs-on: ubuntu-latest
+    env:
+      MONGODB_URI: mongodb://127.0.0.1:27017/fintrack_test?replicaSet=test-rs
+      JWT_SECRET: ci-test-secret-not-used-in-production
 
     steps:
       - name: Checkout repository
@@ -22,5 +28,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests
+      - name: Start MongoDB replica set
+        uses: supercharge/mongodb-github-action@315db7fe45ac2880b7758f1933e6e5d59afd5e94 # 1.12.1
+        with:
+          mongodb-version: 7.0
+          mongodb-replica-set: test-rs
+
+      - name: Build client and server
+        run: npm run build
+
+      - name: Run server workflow tests
+        run: npm test --workspace server
+
+      - name: Run root API tests
         run: npm test
