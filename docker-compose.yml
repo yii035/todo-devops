@@ -1,16 +1,60 @@
-version: '3.8'
-
 services:
+  mongodb:
+    image: mongo:7.0
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    restart: unless-stopped
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          mongosh --quiet --eval
+          "try { rs.status().ok } catch (error) {
+          rs.initiate({_id:'rs0',members:[{_id:0,host:'mongodb:27017'}]}).ok
+          }"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
   app:
     build: .
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
     ports:
-      - "3000:3000"
+      - "4010:4010"
     environment:
-      PORT: 3000
+      NODE_ENV: production
+      PORT: 4010
+      CLIENT_ORIGIN: http://localhost:4010
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in the root .env file}
+      MONGODB_URI: mongodb://mongodb:27017/fintrack?replicaSet=rs0
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:4010/api/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v3.5.0
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
     ports:
       - "9090:9090"
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+
+volumes:
+  mongodb_data:
+  prometheus_data:

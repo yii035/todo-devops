@@ -70,6 +70,12 @@ test('financial workflows validate ownership and recalculate balances from the l
   };
 
   try {
+    const metricsResponse = await fetch(`${base.replace(/\/api\/v1$/, '')}/metrics`);
+    const metrics = await metricsResponse.text();
+    assert.equal(metricsResponse.status, 200);
+    assert.match(metricsResponse.headers.get('content-type') ?? '', /text\/plain/);
+    assert.match(metrics, /process_cpu_user_seconds_total/);
+
     const createdUser = await request('/auth/register', undefined, 'POST', {
       name: 'Finance Test',
       email: testEmail,

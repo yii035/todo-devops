@@ -2,6 +2,7 @@ import express, { type ErrorRequestHandler } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import client from 'prom-client';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import authRoutes from './routes/auth.js';
@@ -20,6 +21,8 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+client.collectDefaultMetrics();
+
 app.use(cors({ origin: env.clientOrigin }));
 app.use(helmet());
 app.use(morgan('dev'));
@@ -27,6 +30,15 @@ app.use(express.json({ limit: '2mb' }));
 
 app.get('/api/health', (_, res) => {
   res.json({ success: true, message: 'FinTrack API is running.' });
+});
+
+app.get('/metrics', async (_req, res, next) => {
+  try {
+    res.set('Content-Type', client.register.contentType);
+    res.end(await client.register.metrics());
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.use('/api/v1/auth', authRoutes);
