@@ -1242,11 +1242,9 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  const token = localStorage.getItem('fintrack-token');
-
   return (
     <Routes>
-      <Route path="/" element={token ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />} />
+      <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/transactions" element={<ProtectedRoute><TransactionsPage /></ProtectedRoute>} />
