@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { NavLink, Navigate, Route, Routes, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   AlertTriangle,
@@ -8,16 +8,17 @@ import {
   Banknote,
   Briefcase,
   Car,
+  Camera,
   ChartNoAxesCombined,
   CircleDollarSign,
   CreditCard,
+  ArrowLeft,
   Gift,
   GraduationCap,
   HeartPulse,
   House,
   Landmark,
   LayoutGrid,
-  LogOut,
   Plane,
   PiggyBank,
   Plus,
@@ -32,6 +33,7 @@ import {
 } from 'lucide-react';
 import LoginPage from './pages/LoginPage';
 import ChatbotWidget from './components/ChatbotWidget';
+import ProfileMenu from './components/ProfileMenu';
 import api from './services/api';
 
 const DashboardCharts = lazy(() => import('./components/DashboardCharts'));
@@ -172,14 +174,9 @@ function AppShell({ title, subtitle, children, actions }: { title: string; subti
   const [showNotifications, setShowNotifications] = useState(false);
   const [notificationError, setNotificationError] = useState('');
 
-  const logout = () => {
-    localStorage.removeItem('fintrack-token');
-    navigate('/login');
-  };
-
   const activeLabel = useMemo(() => {
     const current = sidebarItems.find((item) => item.path === location.pathname);
-    return current?.label ?? 'Tổng quan';
+    return location.pathname === '/profile' ? 'Thông tin cá nhân' : current?.label ?? 'Tổng quan';
   }, [location.pathname]);
 
   useEffect(() => {
@@ -292,10 +289,7 @@ function AppShell({ title, subtitle, children, actions }: { title: string; subti
                   </div>}
                 </div>}
               </div>
-              <button onClick={logout} className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100">
-                <LogOut size={16} />
-                Đăng xuất
-              </button>
+              <ProfileMenu />
             </div>
           </header>
 
@@ -1237,6 +1231,190 @@ function SettingsPage() {
   );
 }
 
+interface PersonalProfile {
+  name: string;
+  email: string;
+  phoneNumber: string;
+  birthDate: string;
+  avatarUrl: string;
+}
+
+const defaultProfileAvatarUrl = '/avatar-default.png';
+
+function PersonalProfilePage() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const fileInput = useRef<HTMLInputElement>(null);
+  const returnPath = typeof location.state === 'object' && location.state !== null &&
+    'from' in location.state && typeof location.state.from === 'string' &&
+    location.state.from !== '/profile'
+    ? location.state.from
+    : '/dashboard';
+  const [profile, setProfile] = useState<PersonalProfile>({
+    name: '',
+    email: '',
+    phoneNumber: '',
+    birthDate: '',
+    avatarUrl: '',
+  });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [loadError, setLoadError] = useState('');
+  const redirectTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    api.get('/settings')
+      .then(({ data }) => {
+        if (!cancelled) setProfile({
+          name: data.data.name ?? '',
+          email: data.data.email ?? '',
+          phoneNumber: data.data.phoneNumber ?? '',
+          birthDate: data.data.birthDate ?? '',
+          avatarUrl: data.data.avatarUrl || defaultProfileAvatarUrl,
+        });
+      })
+      .catch(() => {
+        if (!cancelled) setLoadError('Không thể tải thông tin cá nhân. Vui lòng thử lại.');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+      if (redirectTimer.current !== null) window.clearTimeout(redirectTimer.current);
+    };
+  }, []);
+
+  const updateAvatar = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (!['image/png', 'image/jpeg', 'image/webp', 'image/gif'].includes(file.type)) {
+      setError('Ảnh đại diện chỉ hỗ trợ định dạng PNG, JPEG, WEBP hoặc GIF.');
+      return;
+    }
+    if (file.size > 800_000) {
+      setError('Ảnh đại diện phải nhỏ hơn 800 KB.');
+      return;
+    }
+    setError('');
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setProfile((current) => ({ ...current, avatarUrl: reader.result as string }));
+      } else {
+        setError('Không thể đọc ảnh đã chọn.');
+      }
+    };
+    reader.onerror = () => setError('Không thể đọc ảnh đã chọn.');
+    reader.readAsDataURL(file);
+  };
+
+  const saveProfile = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSaving(true);
+    setMessage('');
+    setError('');
+    try {
+      const { data } = await api.patch('/settings', {
+        name: profile.name,
+        phoneNumber: profile.phoneNumber,
+        birthDate: profile.birthDate || null,
+        avatarUrl: profile.avatarUrl || null,
+      });
+      setProfile((current) => ({ ...current, ...data.data, avatarUrl: data.data.avatarUrl || defaultProfileAvatarUrl }));
+      setMessage('Đã lưu thông tin cá nhân thành công.');
+      redirectTimer.current = window.setTimeout(() => navigate(returnPath, { replace: true }), 1000);
+    } catch (requestError) {
+      const responseMessage = typeof requestError === 'object' && requestError !== null &&
+        'response' in requestError && typeof requestError.response === 'object' && requestError.response !== null &&
+        'data' in requestError.response && typeof requestError.response.data === 'object' &&
+        requestError.response.data !== null && 'message' in requestError.response.data &&
+        typeof requestError.response.data.message === 'string'
+        ? requestError.response.data.message
+        : 'Không thể lưu thông tin cá nhân. Vui lòng thử lại.';
+      setError(responseMessage);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <AppShell title="Thông tin cá nhân" subtitle="Cập nhật thông tin hồ sơ của bạn." actions={null}>
+      <div className="mx-auto max-w-3xl">
+        <button type="button" onClick={() => navigate(returnPath)} className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-blue-700 hover:text-blue-800">
+          <ArrowLeft size={16} />
+          Quay lại
+        </button>
+        <form onSubmit={saveProfile} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-7">
+          {loading ? <p className="py-8 text-center text-sm text-slate-500">Đang tải thông tin...</p> : loadError ? (
+            <div className="space-y-4">
+              <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{loadError}</p>
+              <button type="button" onClick={() => window.location.reload()} className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold">Tải lại</button>
+            </div>
+          ) : (
+            <>
+              {message && <p role="status" className="mb-5 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-700">{message}</p>}
+              {error && <p role="alert" className="mb-5 rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}
+              <div className="mb-6 flex flex-col items-center gap-3 sm:flex-row">
+                <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-full border-2 border-blue-100 bg-blue-50 text-2xl font-bold text-blue-700">
+                  <img
+                    src={profile.avatarUrl || defaultProfileAvatarUrl}
+                    alt="Ảnh đại diện"
+                    className="h-full w-full object-cover"
+                    onError={(event) => {
+                      if (event.currentTarget.src !== new URL(defaultProfileAvatarUrl, window.location.origin).href) {
+                        event.currentTarget.src = defaultProfileAvatarUrl;
+                      }
+                    }}
+                  />
+                </div>
+                <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+                  <button type="button" onClick={() => fileInput.current?.click()} className="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                    <Camera size={16} />
+                    Chọn ảnh đại diện
+                  </button>
+                  {profile.avatarUrl && profile.avatarUrl !== defaultProfileAvatarUrl && <button type="button" onClick={() => setProfile((current) => ({ ...current, avatarUrl: defaultProfileAvatarUrl }))} className="rounded-xl px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50">Khôi phục ảnh mặc định</button>}
+                  <input ref={fileInput} type="file" accept="image/png,image/jpeg,image/webp,image/gif" className="hidden" onChange={updateAvatar} />
+                  <span className="w-full text-center text-xs text-slate-500 sm:text-left">PNG, JPEG, WEBP hoặc GIF · tối đa 800 KB</span>
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="block text-sm font-medium text-slate-600">
+                  Họ và tên
+                  <input required minLength={2} maxLength={100} autoComplete="name" value={profile.name} onChange={(event) => setProfile({ ...profile, name: event.target.value })} className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-slate-800 outline-none focus:border-blue-500" />
+                </label>
+                <label className="block text-sm font-medium text-slate-600">
+                  Email
+                  <input type="email" disabled value={profile.email} autoComplete="email" className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-slate-500" />
+                  <span className="mt-1 block text-xs font-normal text-slate-400">Email đăng nhập không thể đổi tại đây.</span>
+                </label>
+                <label className="block text-sm font-medium text-slate-600">
+                  Số điện thoại
+                  <input type="tel" maxLength={30} autoComplete="tel" value={profile.phoneNumber} onChange={(event) => setProfile({ ...profile, phoneNumber: event.target.value })} placeholder="Nhập số điện thoại" className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-slate-800 outline-none focus:border-blue-500" />
+                </label>
+                <label className="block text-sm font-medium text-slate-600">
+                  Ngày sinh
+                  <input type="date" autoComplete="bday" value={profile.birthDate} onChange={(event) => setProfile({ ...profile, birthDate: event.target.value })} className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-slate-800 outline-none focus:border-blue-500" />
+                </label>
+              </div>
+              <div className="mt-7 flex flex-col-reverse justify-end gap-2 border-t border-slate-100 pt-5 sm:flex-row">
+                <button type="button" onClick={() => navigate(returnPath)} className="rounded-xl border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Hủy</button>
+                <button type="submit" disabled={saving} className="rounded-xl bg-blue-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-wait disabled:opacity-60">
+                  {saving ? 'Đang lưu...' : 'Lưu thông tin'}
+                </button>
+              </div>
+            </>
+          )}
+        </form>
+      </div>
+    </AppShell>
+  );
+}
+
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   useLocation();
   return localStorage.getItem('fintrack-token') ? <>{children}</> : <Navigate to="/login" replace />;
@@ -1268,6 +1446,7 @@ export default function App() {
         <Route path="/debts" element={<ProtectedRoute><DebtsPage /></ProtectedRoute>} />
         <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><PersonalProfilePage /></ProtectedRoute>} />
       </Routes>
       <AuthenticatedChatbot />
     </>

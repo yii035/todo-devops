@@ -75,6 +75,8 @@ test('financial workflows validate ownership and recalculate balances from the l
     assert.equal(metricsResponse.status, 200);
     assert.match(metricsResponse.headers.get('content-type') ?? '', /text\/plain/);
     assert.match(metrics, /process_cpu_user_seconds_total/);
+    const healthResponse = await fetch(`${base.replace(/\/api\/v1$/, '')}/api/health`);
+    assert.equal(healthResponse.headers.get('cross-origin-opener-policy'), 'same-origin-allow-popups');
 
     const createdUser = await request('/auth/register', undefined, 'POST', {
       name: 'Finance Test',
@@ -84,6 +86,22 @@ test('financial workflows validate ownership and recalculate balances from the l
     assert.equal(createdUser.response.status, 201);
     const token = createdUser.data.data.token as string;
     assert.equal((await request('/auth/register', undefined, 'POST', { name: 'Duplicate', email: testEmail, password: 'secure123' })).response.status, 409);
+
+    const initialProfile = await request('/settings', token);
+    assert.equal(initialProfile.response.status, 200);
+    assert.equal(initialProfile.data.data.avatarUrl, '/avatar-default.png');
+
+    const profileUpdate = await request('/settings', token, 'PATCH', {
+      name: 'Finance Test',
+      phoneNumber: '+84 912 345 678',
+      birthDate: '1995-04-12',
+      avatarUrl: 'data:image/png;base64,aGVsbG8=',
+    });
+    assert.equal(profileUpdate.response.status, 200);
+    assert.equal(profileUpdate.data.data.phoneNumber, '+84 912 345 678');
+    assert.equal(profileUpdate.data.data.birthDate, '1995-04-12');
+    assert.equal(profileUpdate.data.data.avatarUrl, 'data:image/png;base64,aGVsbG8=');
+    assert.equal((await request('/settings', token, 'PATCH', { avatarUrl: 'javascript:alert(1)' })).response.status, 400);
 
     assert.equal((await request('/chat', undefined, 'POST', { message: 'Hỏi về FinTrack' })).response.status, 401);
     const outOfScopeChat = await request('/chat', token, 'POST', { message: 'Hãy giải thích thuyết tương đối.' });

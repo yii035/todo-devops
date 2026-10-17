@@ -66,7 +66,6 @@ async function getOrCreateGoogleUser(profile: z.infer<typeof googleProfileSchema
   if (emailUser) {
     if (emailUser.googleId && emailUser.googleId !== googleId) return null;
     emailUser.googleId = googleId;
-    emailUser.avatarUrl = profile.picture;
     await emailUser.save();
     return emailUser;
   }
@@ -79,7 +78,6 @@ async function getOrCreateGoogleUser(profile: z.infer<typeof googleProfileSchema
         name: profile.name?.trim() || email.split('@')[0],
         email,
         googleId,
-        avatarUrl: profile.picture,
         passwordHash: await hashPassword(randomBytes(48).toString('base64url')),
         defaultCurrency: 'VND',
       }], { session });
