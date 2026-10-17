@@ -1,8 +1,7 @@
-import express, { type ErrorRequestHandler } from 'express';
+import express, { type ErrorRequestHandler, type RequestHandler } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import client from 'prom-client';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import authRoutes from './routes/auth.js';
@@ -17,12 +16,33 @@ import settingsRoutes from './routes/settings.js';
 import notificationRoutes from './routes/notifications.js';
 import chatRoutes from './routes/chat.js';
 import { env } from './config/env.js';
+import { httpRequestDurationMs, httpRequestsTotal, register } from './metrics.js';
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-client.collectDefaultMetrics();
+const requestMetricsMiddleware: RequestHandler = (req, res, next) => {
+  const startTime = process.hrtime.bigint();
+
+  res.once('finish', () => {
+    const routePath = req.route?.path;
+    const route = routePath
+      ? `${req.baseUrl}${Array.isArray(routePath) ? routePath.join('|') : routePath}`
+      : 'unmatched';
+    const labels = {
+      method: req.method,
+      route,
+      status_code: String(res.statusCode),
+    };
+    const durationMs = Number(process.hrtime.bigint() - startTime) / 1_000_000;
+
+    httpRequestsTotal.inc(labels);
+    httpRequestDurationMs.observe(labels, durationMs);
+  });
+
+  next();
+};
 
 app.use(cors({ origin: env.clientOrigin }));
 app.use(helmet({
@@ -37,6 +57,7 @@ app.use(helmet({
 }));
 app.use(morgan('dev'));
 app.use(express.json({ limit: '2mb' }));
+app.use(requestMetricsMiddleware);
 
 app.get('/api/health', (_, res) => {
   res.json({ success: true, message: 'FinTrack API is running.' });
@@ -44,8 +65,8 @@ app.get('/api/health', (_, res) => {
 
 app.get('/metrics', async (_req, res, next) => {
   try {
-    res.set('Content-Type', client.register.contentType);
-    res.end(await client.register.metrics());
+    res.set('Content-Type', register.contentType);
+    res.end(await register.metrics());
   } catch (error) {
     next(error);
   }
