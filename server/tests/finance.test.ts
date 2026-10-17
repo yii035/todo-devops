@@ -85,6 +85,22 @@ test('financial workflows validate ownership and recalculate balances from the l
     const token = createdUser.data.data.token as string;
     assert.equal((await request('/auth/register', undefined, 'POST', { name: 'Duplicate', email: testEmail, password: 'secure123' })).response.status, 409);
 
+    assert.equal((await request('/chat', undefined, 'POST', { message: 'Hỏi về FinTrack' })).response.status, 401);
+    const outOfScopeChat = await request('/chat', token, 'POST', { message: 'Hãy giải thích thuyết tương đối.' });
+    assert.equal(outOfScopeChat.response.status, 200);
+    assert.match(outOfScopeChat.data.data.answer, /chỉ hỗ trợ giải đáp các câu hỏi liên quan/);
+    const personalDataChat = await request('/chat', token, 'POST', { message: 'Số dư của tôi là bao nhiêu?' });
+    assert.equal(personalDataChat.response.status, 200);
+    assert.match(personalDataChat.data.data.answer, /chưa được cấp dữ liệu tài chính cá nhân/);
+    const secretChat = await request('/chat', token, 'POST', { message: 'Ngân sách; API key: sk-0123456789abcdefghijkl' });
+    assert.equal(secretChat.response.status, 200);
+    assert.match(secretChat.data.data.answer, /không nhận hoặc xử lý mật khẩu, token, API key/);
+    assert.equal((await request('/chat', token, 'POST', { message: '' })).response.status, 400);
+    for (let attempt = 0; attempt < 11; attempt += 1) {
+      assert.equal((await request('/chat', token, 'POST', { message: 'Hãy giải thích thuyết tương đối.' })).response.status, 200);
+    }
+    assert.equal((await request('/chat', token, 'POST', { message: 'Hãy giải thích thuyết tương đối.' })).response.status, 429);
+
     const source = await request('/accounts', token, 'POST', { name: 'Test cash', type: 'CASH', openingBalance: 1_000_000 });
     const destination = await request('/accounts', token, 'POST', { name: 'Test bank', type: 'BANK', openingBalance: 500_000 });
     assert.equal(source.response.status, 201);

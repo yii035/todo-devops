@@ -15,6 +15,7 @@ import debtRoutes from './routes/debts.js';
 import reportRoutes from './routes/reports.js';
 import settingsRoutes from './routes/settings.js';
 import notificationRoutes from './routes/notifications.js';
+import chatRoutes from './routes/chat.js';
 import { env } from './config/env.js';
 
 const app = express();
@@ -59,6 +60,7 @@ app.use('/api/v1/debts', debtRoutes);
 app.use('/api/v1/reports', reportRoutes);
 app.use('/api/v1/settings', settingsRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/v1/chat', chatRoutes);
 
 const errorHandler: ErrorRequestHandler = (error: unknown, _req, res, _next) => {
   const statusCode = typeof error === 'object' && error !== null && 'statusCode' in error &&

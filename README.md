@@ -32,6 +32,12 @@ The seed command is safe to re-run and creates the demo account `demo@fintrack.l
 
 `server\.env` is local configuration and is ignored by Git. Never commit it or paste database credentials into source files or documentation. The API does not start when MongoDB is unreachable; it will not silently use volatile mock data.
 
+### FinTrack chatbot
+
+The authenticated app includes a floating help chatbot that answers questions about verified FinTrack features and workflows. It does not access private financial records, make changes, or answer unrelated general-knowledge questions. Without an AI provider configured, it replies with matching verified project information.
+
+To enable optional OpenAI-compatible answer generation, set `AI_API_KEY` in `server\.env` (and optionally `AI_API_URL` and `AI_MODEL`). For Docker Compose, set the same variables in the root `.env`. These values are only used by the backend and must never be exposed through `VITE_` variables. When enabled, the configured provider receives the user's question and matching public project excerpts, but not private finance records. Credential-like input is blocked. The API requires authentication and limits chatbot requests to 15 per user per minute. See [chatbot API details](./docs/api-documentation.md#chatbot).
+
 ### Google sign-in
 
 Create an OAuth 2.0 Web application client in Google Cloud Console and add your app URL to **Authorized JavaScript origins** (for local development, `http://localhost:5173`). Set `GOOGLE_CLIENT_ID` in `server\.env`. Google Identity Services ID tokens are verified by the API, so this sign-in flow does not require a client secret or an authorized redirect URI.
