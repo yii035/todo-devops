@@ -32,6 +32,7 @@ services:
       CLIENT_ORIGIN: http://localhost:4010
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in the root .env file}
       MONGODB_URI: mongodb://mongodb:27017/fintrack?replicaSet=rs0
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
     healthcheck:
       test:
         - CMD
