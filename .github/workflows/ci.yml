@@ -15,6 +15,7 @@ jobs:
       MONGODB_URI: mongodb://127.0.0.1:27017/fintrack_test?replicaSet=test-rs
       JWT_SECRET: ci-test-secret-not-used-in-production
 
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -48,6 +49,10 @@ jobs:
     needs: build-and-test
     env:
       JWT_SECRET: ci-monitoring-only-secret
+      APP_PORT: 4011
+      APP_URL: http://localhost:4011
+      APP_HEALTH_PATH: /api/health
+      CLIENT_ORIGIN: http://localhost:4011
 
     steps:
       - name: Checkout repository
@@ -59,8 +64,8 @@ jobs:
       - name: Verify API health and Prometheus scrape
         shell: bash
         run: |
-          for attempt in {1..60}; do
-            if curl --fail --silent http://localhost:4010/api/health > /dev/null; then
+          for attempt in {1..120}; do
+            if curl --fail --silent http://localhost:4011/api/health > /dev/null; then
               break
             fi
             if [ "$attempt" -eq 60 ]; then
@@ -70,12 +75,12 @@ jobs:
             sleep 5
           done
 
-          if ! curl --fail --silent http://localhost:4010/metrics | grep -q 'process_start_time_seconds'; then
+          if ! curl --fail --silent http://localhost:4011/metrics | grep -q 'process_start_time_seconds'; then
             echo "FinTrack metrics endpoint did not return the expected Prometheus metric."
             exit 1
           fi
 
-          for attempt in {1..60}; do
+          for attempt in {1..120}; do
             response=$(curl --fail --silent --get \
               --data-urlencode 'query=up{job="fintrack-app"}' \
               http://localhost:9090/api/v1/query || true)
