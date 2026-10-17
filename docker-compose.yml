@@ -25,7 +25,7 @@ services:
       mongodb:
         condition: service_healthy
     ports:
-      - "4010:4010"
+      - "4011:4010"
     environment:
       NODE_ENV: production
       PORT: 4010
@@ -49,6 +49,7 @@ services:
 
   prometheus:
     image: prom/prometheus:v3.5.0
+    container_name: fintrack-prometheus
     restart: unless-stopped
     depends_on:
       app:
@@ -59,6 +60,21 @@ services:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
 
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: fintrack-grafana
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASS:-admin123}
+    volumes:
+      - grafana_data:/var/lib/grafana
+
 volumes:
   mongodb_data:
   prometheus_data:
+  grafana_data:

@@ -77,7 +77,7 @@ jobs:
 
           for attempt in {1..60}; do
             response=$(curl --fail --silent --get \
-              --data-urlencode 'query=up{job="fintrack_api"}' \
+              --data-urlencode 'query=up{job="fintrack-app"}' \
               http://localhost:9090/api/v1/query || true)
             if echo "$response" | jq -e '.data.result[0].value[1] == "1"' > /dev/null; then
               echo "Prometheus successfully scraped the FinTrack API."

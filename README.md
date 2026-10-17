@@ -36,7 +36,7 @@ FinTrack là ứng dụng quản lý tài chính cá nhân gồm giao diện web
 | Biểu đồ | Recharts |
 | Kiểm thử API | Node.js test runner, `tsx`, MongoDB |
 | Triển khai container | Docker, Docker Compose |
-| Giám sát | Prometheus, `prom-client` |
+| Giám sát | Prometheus, Grafana, `prom-client` |
 
 ## Tính năng
 
@@ -71,7 +71,7 @@ server/                  API Express/TypeScript
   tests/                  Kiểm thử API và luồng nghiệp vụ
 docs/                     Tài liệu API, cơ sở dữ liệu, use case
 public/                   Tài nguyên tĩnh phục vụ API/web
-docker-compose.yml        Cấu hình ứng dụng, MongoDB, Prometheus
+docker-compose.yml        Cấu hình ứng dụng, MongoDB, Prometheus, Grafana
 Dockerfile                Build và chạy ứng dụng dạng container
 ```
 
@@ -157,6 +157,7 @@ docker compose up --build -d
 | FinTrack | `http://localhost:4010` |
 | API health | `http://localhost:4010/api/health` |
 | Prometheus | `http://localhost:9090` |
+| Grafana | `http://localhost:3000` |
 
 Dừng các dịch vụ:
 
@@ -164,7 +165,7 @@ Dừng các dịch vụ:
 docker compose down
 ```
 
-Lệnh trên giữ lại dữ liệu. Chỉ thêm `-v` nếu bạn chủ ý xóa các volume MongoDB và Prometheus:
+Lệnh trên giữ lại dữ liệu. Chỉ thêm `-v` nếu bạn chủ ý xóa các volume MongoDB, Prometheus và Grafana:
 
 ```powershell
 docker compose down -v
@@ -190,7 +191,7 @@ Chạy kiểm thử phần Express ở thư mục gốc:
 npm test
 ```
 
-GitHub Actions chạy các bước build và kiểm thử trên mỗi push/pull request, sau đó khởi động ứng dụng cùng Prometheus bằng Docker Compose. Job monitoring xác nhận API health, endpoint `/metrics` và trạng thái scrape `UP` của target `fintrack_api` trước khi CI thành công.
+GitHub Actions chạy các bước build và kiểm thử trên mỗi push/pull request, sau đó khởi động ứng dụng cùng Prometheus bằng Docker Compose. Job monitoring xác nhận API health, endpoint `/metrics` và trạng thái scrape `UP` của target `fintrack-app` trước khi CI thành công.
 
 ## Tài liệu API
 
@@ -207,6 +208,22 @@ Tài liệu chi tiết:
 - [Thiết kế cơ sở dữ liệu](./docs/database-design.md)
 
 API health: `GET /api/health`. Chỉ số Prometheus: `GET /metrics`.
+
+### Prometheus và Grafana
+
+Đặt `GRAFANA_PASS` trong tệp `.env` ở thư mục gốc bằng mật khẩu mạnh, riêng biệt trước khi chạy Compose. Nếu chưa đặt biến này, Compose dùng mật khẩu mặc định `admin123`; không dùng giá trị mặc định trong môi trường thật.
+
+```powershell
+docker compose build app
+docker compose up -d
+```
+
+- Mở `http://localhost:9090/targets` và xác nhận target `fintrack-app` có trạng thái **UP**.
+- Mở `http://localhost:3000`, đăng nhập với tên `admin` và mật khẩu từ `GRAFANA_PASS`.
+- Trong Grafana, thêm data source **Prometheus** với URL `http://prometheus:9090`, rồi lưu và kiểm tra kết nối.
+- Ví dụ truy vấn PromQL: `rate(fintrack_http_requests_total[5m])`.
+
+Endpoint `/metrics` không yêu cầu JWT. Các chỉ số request gồm method, route đã khớp (hoặc `unmatched`) và status code; route được ghi dưới dạng mẫu để tránh tạo nhãn có ID thay đổi liên tục.
 
 ## Chatbot FinTrack
 

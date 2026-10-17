@@ -74,9 +74,13 @@ test('financial workflows validate ownership and recalculate balances from the l
     const metrics = await metricsResponse.text();
     assert.equal(metricsResponse.status, 200);
     assert.match(metricsResponse.headers.get('content-type') ?? '', /text\/plain/);
-    assert.match(metrics, /process_cpu_user_seconds_total/);
+    assert.match(metrics, /fintrack_process_cpu_user_seconds_total/);
     const healthResponse = await fetch(`${base.replace(/\/api\/v1$/, '')}/api/health`);
     assert.equal(healthResponse.headers.get('cross-origin-opener-policy'), 'same-origin-allow-popups');
+    const instrumentedMetricsResponse = await fetch(`${base.replace(/\/api\/v1$/, '')}/metrics`);
+    const instrumentedMetrics = await instrumentedMetricsResponse.text();
+    assert.match(instrumentedMetrics, /fintrack_http_requests_total\{method="GET",route="\/api\/health",status_code="200"\} 1/);
+    assert.match(instrumentedMetrics, /fintrack_http_request_duration_ms_bucket\{le="5",method="GET",route="\/api\/health",status_code="200"\}/);
 
     const createdUser = await request('/auth/register', undefined, 'POST', {
       name: 'Finance Test',
