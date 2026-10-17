@@ -7,6 +7,9 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     server: {
       port: 5173,
+      headers: {
+        'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+      },
       proxy: {
         '/api': {
           target: env.VITE_API_PROXY_TARGET || 'http://localhost:4000',

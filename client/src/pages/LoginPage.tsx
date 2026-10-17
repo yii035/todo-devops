@@ -23,10 +23,49 @@ interface GoogleIdentityServices {
   };
 }
 
+type GoogleCredentialHandler = (response: GoogleCredentialResponse) => void;
+
 declare global {
   interface Window {
     google?: GoogleIdentityServices;
+    __fintrackGoogleInitializedClientId?: string;
+    __fintrackGoogleCredentialHandler?: GoogleCredentialHandler;
+    __fintrackGoogleScriptPromise?: Promise<GoogleIdentityServices>;
   }
+}
+
+function loadGoogleIdentityServices(): Promise<GoogleIdentityServices> {
+  if (window.google) return Promise.resolve(window.google);
+
+  const existingPromise = window.__fintrackGoogleScriptPromise;
+  if (existingPromise) return existingPromise;
+
+  const promise = new Promise<GoogleIdentityServices>((resolve, reject) => {
+    let script = document.querySelector<HTMLScriptElement>('script[data-google-identity]');
+    const shouldAppend = !script;
+    if (!script) {
+      script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.dataset.googleIdentity = 'true';
+    }
+
+    script.addEventListener('load', () => {
+      if (window.google) resolve(window.google);
+      else reject(new Error('Google Identity Services did not initialize.'));
+    }, { once: true });
+    script.addEventListener('error', () => reject(new Error('Unable to load Google Identity Services.')), { once: true });
+    if (shouldAppend) document.head.appendChild(script);
+  });
+
+  window.__fintrackGoogleScriptPromise = promise;
+  void promise.catch(() => {
+    if (window.__fintrackGoogleScriptPromise === promise) {
+      window.__fintrackGoogleScriptPromise = undefined;
+    }
+  });
+  return promise;
 }
 
 export default function LoginPage() {
@@ -40,25 +79,32 @@ export default function LoginPage() {
 
   useEffect(() => {
     let cancelled = false;
-    let initialized = false;
+    const credentialHandler: GoogleCredentialHandler = async ({ credential }) => {
+      setGoogleError(null);
+      try {
+        const response = await api.post('/auth/google/credential', { credential });
+        localStorage.setItem('fintrack-token', response.data.data.token);
+        navigate('/dashboard', { replace: true });
+      } catch {
+        setGoogleError('Đăng nhập Google thất bại. Vui lòng thử lại.');
+      }
+    };
+    window.__fintrackGoogleCredentialHandler = credentialHandler;
 
-    const initializeGoogleButton = (clientId: string) => {
-      if (cancelled || initialized || !window.google || !googleButton.current) return;
-      initialized = true;
-      window.google.accounts.id.initialize({
-        client_id: clientId,
-        callback: async ({ credential }) => {
-          setGoogleError(null);
-          try {
-            const response = await api.post('/auth/google/credential', { credential });
-            localStorage.setItem('fintrack-token', response.data.data.token);
-            navigate('/dashboard', { replace: true });
-          } catch {
-            setGoogleError('Đăng nhập Google thất bại. Vui lòng thử lại.');
-          }
-        },
-      });
-      window.google.accounts.id.renderButton(googleButton.current, {
+    const initializeGoogleButton = async (clientId: string) => {
+      const google = await loadGoogleIdentityServices();
+      if (cancelled || !googleButton.current) return;
+
+      if (window.__fintrackGoogleInitializedClientId !== clientId) {
+        google.accounts.id.initialize({
+          client_id: clientId,
+          callback: (response) => window.__fintrackGoogleCredentialHandler?.(response),
+        });
+        window.__fintrackGoogleInitializedClientId = clientId;
+      }
+
+      googleButton.current.replaceChildren();
+      google.accounts.id.renderButton(googleButton.current, {
         theme: 'outline',
         size: 'large',
         width: Math.min(320, googleButton.current.clientWidth || 320),
@@ -66,33 +112,18 @@ export default function LoginPage() {
       });
     };
 
-    api.get('/auth/google/config').then(({ data }) => {
-      if (cancelled) return;
-      const clientId: string = data.data.clientId;
-      if (window.google) {
-        initializeGoogleButton(clientId);
-        return;
-      }
-
-      let script = document.querySelector<HTMLScriptElement>('script[data-google-identity]');
-      if (!script) {
-        script = document.createElement('script');
-        script.src = 'https://accounts.google.com/gsi/client';
-        script.async = true;
-        script.defer = true;
-        script.dataset.googleIdentity = 'true';
-        document.head.appendChild(script);
-      }
-      script.addEventListener('load', () => initializeGoogleButton(clientId), { once: true });
-      script.addEventListener('error', () => {
-        if (!cancelled) setGoogleError('Không tải được dịch vụ đăng nhập Google.');
-      }, { once: true });
-    }).catch(() => {
-      if (!cancelled) setGoogleError('Đăng nhập Google chưa được cấu hình trên máy chủ.');
-    });
+    api.get('/auth/google/config')
+      .then(({ data }) => initializeGoogleButton(data.data.clientId))
+      .catch(() => {
+        if (!cancelled) setGoogleError('Đăng nhập Google chưa được cấu hình hoặc không thể tải dịch vụ.');
+      });
 
     return () => {
       cancelled = true;
+      if (window.__fintrackGoogleCredentialHandler === credentialHandler) {
+        window.__fintrackGoogleCredentialHandler = undefined;
+      }
+      googleButton.current?.replaceChildren();
     };
   }, [navigate]);
 

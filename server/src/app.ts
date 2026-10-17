@@ -26,6 +26,7 @@ client.collectDefaultMetrics();
 
 app.use(cors({ origin: env.clientOrigin }));
 app.use(helmet({
+  crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
   contentSecurityPolicy: {
     directives: {
       scriptSrc: ["'self'", 'https://accounts.google.com'],

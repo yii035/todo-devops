@@ -21,9 +21,12 @@ The chatbot retrieves only curated information from the project documentation an
 | POST | `/auth/logout` | Acknowledge logout; the stateless client must remove its token |
 | GET | `/auth/me` | Return the authenticated user without password data |
 | PATCH | `/auth/change-password` | Verify current password and replace its hash |
-| GET/PATCH | `/settings` | Read/update the authenticated user's name and default currency |
+| GET/PATCH | `/settings` | Read/update the authenticated user's name, default currency, phone number, birth date, and avatar |
+
+New accounts use the built-in `/avatar-default.png` image until the user uploads another avatar. Avatar uploads are stored as validated PNG, JPEG, WEBP, or GIF data URLs (maximum 800 KB from the client); HTTPS avatar URLs are also accepted. Email remains read-only. Profile fields are scoped to the authenticated user.
 
 Configure `GOOGLE_CLIENT_ID` on the server and authorize the client app origin in Google Cloud Console; see the [Google sign-in setup](../README.md#google-sign-in).
+The production server and Vite development server set `Cross-Origin-Opener-Policy: same-origin-allow-popups` to support the Google Identity Services popup while retaining opener isolation for other cross-origin windows.
 
 ## Finance workflows
 

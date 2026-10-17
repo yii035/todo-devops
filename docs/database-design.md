@@ -2,7 +2,7 @@
 
 The intended persistent database is MongoDB with Mongoose. Schemas currently present:
 
-- `User`: name, unique normalized email, password hash, avatar, default currency, timestamps.
+- `User`: name, unique normalized email, password hash, avatar (defaults to `/avatar-default.png`), optional phone number and birth date, default currency, timestamps.
 - `Account`: owner, name, account type, opening balance, currency, archive flag.
 - `Category`: optional owner for system categories, type, icon/color, system/archive flags.
 - `Transaction`: owner, type, title, amount, category, source/destination accounts, date, note.
