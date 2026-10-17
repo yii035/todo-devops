@@ -42,3 +42,59 @@ jobs:
 
       - name: Run root API tests
         run: npm test
+
+  monitoring-smoke:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    env:
+      JWT_SECRET: ci-monitoring-only-secret
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Start application and monitoring stack
+        run: docker compose up --build -d
+
+      - name: Verify API health and Prometheus scrape
+        shell: bash
+        run: |
+          for attempt in {1..60}; do
+            if curl --fail --silent http://localhost:4010/api/health > /dev/null; then
+              break
+            fi
+            if [ "$attempt" -eq 60 ]; then
+              echo "FinTrack API did not become healthy in time."
+              exit 1
+            fi
+            sleep 5
+          done
+
+          if ! curl --fail --silent http://localhost:4010/metrics | grep -q 'process_start_time_seconds'; then
+            echo "FinTrack metrics endpoint did not return the expected Prometheus metric."
+            exit 1
+          fi
+
+          for attempt in {1..60}; do
+            response=$(curl --fail --silent --get \
+              --data-urlencode 'query=up{job="fintrack_api"}' \
+              http://localhost:9090/api/v1/query || true)
+            if echo "$response" | jq -e '.data.result[0].value[1] == "1"' > /dev/null; then
+              echo "Prometheus successfully scraped the FinTrack API."
+              exit 0
+            fi
+            if [ "$attempt" -eq 60 ]; then
+              echo "Prometheus did not report the FinTrack API target as up."
+              echo "$response" | jq .
+              exit 1
+            fi
+            sleep 5
+          done
+
+      - name: Show service logs on failure
+        if: failure()
+        run: docker compose logs
+
+      - name: Stop application and monitoring stack
+        if: always()
+        run: docker compose down --remove-orphans

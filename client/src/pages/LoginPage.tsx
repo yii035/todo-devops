@@ -18,6 +18,7 @@ interface GoogleIdentityServices {
         size: 'large';
         width: number;
         text: 'continue_with';
+        use_fedcm_for_button: boolean;
       }) => void;
     };
   };
@@ -109,6 +110,7 @@ export default function LoginPage() {
         size: 'large',
         width: Math.min(320, googleButton.current.clientWidth || 320),
         text: 'continue_with',
+        use_fedcm_for_button: true,
       });
     };
 

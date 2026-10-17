@@ -190,6 +190,8 @@ Chạy kiểm thử phần Express ở thư mục gốc:
 npm test
 ```
 
+GitHub Actions chạy các bước build và kiểm thử trên mỗi push/pull request, sau đó khởi động ứng dụng cùng Prometheus bằng Docker Compose. Job monitoring xác nhận API health, endpoint `/metrics` và trạng thái scrape `UP` của target `fintrack_api` trước khi CI thành công.
+
 ## Tài liệu API
 
 Các API được đặt dưới tiền tố `/api/v1`. Route cá nhân yêu cầu header xác thực:
