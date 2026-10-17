@@ -82,7 +82,8 @@ api.interceptors.response.use(
 
     if (axios.isAxiosError(error) && error.response?.status === 401) {
       const requestUrl = error.config?.url ?? '';
-      const isAuthenticationRequest = requestUrl.endsWith('/auth/login') || requestUrl.endsWith('/auth/register');
+      const isAuthenticationRequest = requestUrl.endsWith('/auth/login') ||
+        requestUrl.endsWith('/auth/register') || requestUrl.endsWith('/auth/google/credential');
 
       if (!isAuthenticationRequest && localStorage.getItem('fintrack-token')) {
         localStorage.removeItem('fintrack-token');

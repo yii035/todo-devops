@@ -32,6 +32,12 @@ The seed command is safe to re-run and creates the demo account `demo@fintrack.l
 
 `server\.env` is local configuration and is ignored by Git. Never commit it or paste database credentials into source files or documentation. The API does not start when MongoDB is unreachable; it will not silently use volatile mock data.
 
+### Google sign-in
+
+Create an OAuth 2.0 Web application client in Google Cloud Console and add your app URL to **Authorized JavaScript origins** (for local development, `http://localhost:5173`). Set `GOOGLE_CLIENT_ID` in `server\.env`. Google Identity Services ID tokens are verified by the API, so this sign-in flow does not require a client secret or an authorized redirect URI.
+
+For Docker Compose, set `GOOGLE_CLIENT_ID` in the root `.env` and authorize the app's public origin in Google Cloud Console.
+
 ## Run with Docker Compose
 
 Requirements: Docker Engine with the Compose plugin.

@@ -8,10 +8,14 @@ All routes are prefixed with `/api/v1`. Protected routes require `Authorization:
 |---|---|---|
 | POST | `/auth/register` | Register and return a token |
 | POST | `/auth/login` | Verify credentials and return a token |
+| GET | `/auth/google/config` | Return the public Google OAuth client ID for the sign-in button |
+| POST | `/auth/google/credential` | Verify a Google Identity Services ID token and return a FinTrack token |
 | POST | `/auth/logout` | Acknowledge logout; the stateless client must remove its token |
 | GET | `/auth/me` | Return the authenticated user without password data |
 | PATCH | `/auth/change-password` | Verify current password and replace its hash |
 | GET/PATCH | `/settings` | Read/update the authenticated user's name and default currency |
+
+Configure `GOOGLE_CLIENT_ID` on the server and authorize the client app origin in Google Cloud Console; see the [Google sign-in setup](../README.md#google-sign-in).
 
 ## Finance workflows
 

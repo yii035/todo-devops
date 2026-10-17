@@ -24,7 +24,15 @@ const __dirname = path.dirname(__filename);
 client.collectDefaultMetrics();
 
 app.use(cors({ origin: env.clientOrigin }));
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      scriptSrc: ["'self'", 'https://accounts.google.com'],
+      frameSrc: ["'self'", 'https://accounts.google.com'],
+      connectSrc: ["'self'", 'https://accounts.google.com'],
+    },
+  },
+}));
 app.use(morgan('dev'));
 app.use(express.json({ limit: '2mb' }));
 
