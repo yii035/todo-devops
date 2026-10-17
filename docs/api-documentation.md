@@ -2,6 +2,14 @@
 
 All routes are prefixed with `/api/v1`. Protected routes require `Authorization: Bearer <JWT>`. Successful JSON responses use `{ "success": true, "data": ... }`; errors use `{ "success": false, "message": "..." }`.
 
+## Chatbot
+
+| Method | Endpoint | Behavior |
+|---|---|---|
+| POST | `/chat` | Ask a Vietnamese question about verified FinTrack features and workflows; requires authentication and accepts `{ "message": "..." }` (1-1000 characters) |
+
+The chatbot retrieves only curated information from the project documentation and implemented workflows. Its system instructions require step-by-step guidance to use verified UI features only, and allow personal financial analysis only when authorized real data is supplied. The current implementation does not query personal finance records, so it directs users to the relevant FinTrack pages instead of inventing their figures; it does not perform writes. Out-of-scope questions are refused; insufficiently documented questions receive an explicit not-enough-information response. Credential-like input is blocked before retrieval or provider calls. Requests are limited to 15 per authenticated user per minute. An optional OpenAI-compatible provider can be configured on the server with `AI_API_KEY`, `AI_API_URL`, and `AI_MODEL`; when enabled, the question and matched public project excerpts are sent to that provider. Without a key, answers use the verified source excerpts directly. Provider credentials and private financial records are never sent to the client or provider.
+
 ## Authentication and settings
 
 | Method | Endpoint | Behavior |

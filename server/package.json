@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc -p tsconfig.json",
-    "test": "tsx --test tests/finance.test.ts",
+    "test": "tsx --test tests/chatbot.test.ts tests/finance.test.ts",
     "seed": "tsx src/seed.ts",
     "start": "node dist/server.js"
   },

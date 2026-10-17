@@ -18,5 +18,8 @@ export const env = {
   googleClientId,
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET?.trim(),
   googleRedirectUri: process.env.GOOGLE_REDIRECT_URI?.trim(),
+  aiApiKey: process.env.AI_API_KEY?.trim(),
+  aiApiUrl: process.env.AI_API_URL?.trim() || 'https://api.openai.com/v1/chat/completions',
+  aiModel: process.env.AI_MODEL?.trim() || 'gpt-4o-mini',
   appName: 'FinTrack',
 };

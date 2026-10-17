@@ -31,6 +31,7 @@ import {
   Wallet,
 } from 'lucide-react';
 import LoginPage from './pages/LoginPage';
+import ChatbotWidget from './components/ChatbotWidget';
 import api from './services/api';
 
 const DashboardCharts = lazy(() => import('./components/DashboardCharts'));
@@ -1241,19 +1242,34 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return localStorage.getItem('fintrack-token') ? <>{children}</> : <Navigate to="/login" replace />;
 }
 
+function AuthenticatedChatbot() {
+  const location = useLocation();
+  const token = localStorage.getItem('fintrack-token');
+  if (!token || location.pathname === '/login') return null;
+
+  let sessionId = 2166136261;
+  for (let index = 0; index < token.length; index += 1) {
+    sessionId = Math.imul(sessionId ^ token.charCodeAt(index), 16777619);
+  }
+  return <ChatbotWidget key={sessionId >>> 0} sessionId={(sessionId >>> 0).toString(36)} />;
+}
+
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Navigate to="/login" replace />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-      <Route path="/transactions" element={<ProtectedRoute><TransactionsPage /></ProtectedRoute>} />
-      <Route path="/accounts" element={<ProtectedRoute><AccountsPage /></ProtectedRoute>} />
-      <Route path="/categories" element={<ProtectedRoute><CategoriesPage /></ProtectedRoute>} />
-      <Route path="/budgets" element={<ProtectedRoute><BudgetsPage /></ProtectedRoute>} />
-      <Route path="/debts" element={<ProtectedRoute><DebtsPage /></ProtectedRoute>} />
-      <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
-      <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+        <Route path="/transactions" element={<ProtectedRoute><TransactionsPage /></ProtectedRoute>} />
+        <Route path="/accounts" element={<ProtectedRoute><AccountsPage /></ProtectedRoute>} />
+        <Route path="/categories" element={<ProtectedRoute><CategoriesPage /></ProtectedRoute>} />
+        <Route path="/budgets" element={<ProtectedRoute><BudgetsPage /></ProtectedRoute>} />
+        <Route path="/debts" element={<ProtectedRoute><DebtsPage /></ProtectedRoute>} />
+        <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+      </Routes>
+      <AuthenticatedChatbot />
+    </>
   );
 }
