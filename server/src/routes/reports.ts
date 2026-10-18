@@ -143,15 +143,16 @@ router.get('/export', requireAuth, async (req: AuthRequest, res, next) => {
     const accountNames = new Map(accounts.map((item) => [String(item._id), item.name]));
     const categoryNames = new Map(categories.map((item) => [String(item._id), item.name]));
     const escape = (value: unknown) => `"${String(value ?? '').replaceAll('"', '""')}"`;
+    const delimiter = ';';
     const csv = [
-      ['Title', 'Type', 'Amount', 'Category', 'Account', 'Date', 'Note'].join(','),
+      ['Title', 'Type', 'Amount', 'Category', 'Account', 'Date', 'Note'].join(delimiter),
       ...transactions.map((item) => [
         item.title, item.type, item.amount,
         item.categoryId ? categoryNames.get(item.categoryId.toString()) ?? '' : '',
         accountNames.get(item.accountId.toString()) ?? '',
         item.transactionDate.toISOString(),
         item.note,
-      ].map(escape).join(',')),
+      ].map(escape).join(delimiter)),
     ].join('\r\n');
     res.type('text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', 'attachment; filename="fintrack-report.csv"');
