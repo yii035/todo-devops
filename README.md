@@ -1,177 +1,194 @@
 # FinTrack
 
-> Ứng dụng quản lý tài chính cá nhân giúp ghi nhận thu nhập, theo dõi chi tiêu, lập ngân sách và xem báo cáo trong một giao diện tiếng Việt.
+> Ứng dụng quản lý tài chính cá nhân bằng tiếng Việt — theo dõi thu chi, ngân sách, khoản vay/nợ và báo cáo trên cùng một nền tảng.
+
+**FinTrack** gồm giao diện React, API Node.js và cơ sở dữ liệu MongoDB. Bạn có thể chạy nhanh toàn bộ ứng dụng bằng Docker Compose hoặc chạy frontend/backend riêng để phát triển.
+
+| Chạy nhanh | Phát triển |
+|---|---|
+| Docker Compose | Node.js + MongoDB replica set |
+| Ứng dụng: [http://localhost:4011](http://localhost:4011) | Giao diện: [http://localhost:5173](http://localhost:5173) |
+| Bao gồm MongoDB, Prometheus và Grafana | API: [http://localhost:4000](http://localhost:4000) |
+
+> **Dữ liệu demo:** sau khi nạp dữ liệu mẫu, đăng nhập bằng `demo@fintrack.local` / `password123`. Chỉ sử dụng tài khoản này trong môi trường phát triển.
 
 ## Mục lục
 
-- [Giới thiệu](#giới-thiệu)
-- [Công nghệ](#công-nghệ)
 - [Tính năng](#tính-năng)
-- [Kiến trúc dự án](#kiến-trúc-dự-án)
-- [Yêu cầu](#yêu-cầu)
-- [Chạy trên máy cá nhân](#chạy-trên-máy-cá-nhân)
+- [Công nghệ](#công-nghệ)
+- [Chạy nhanh bằng Docker Compose](#chạy-nhanh-bằng-docker-compose)
+- [Chạy để phát triển](#chạy-để-phát-triển)
 - [Cấu hình môi trường](#cấu-hình-môi-trường)
-- [Chạy bằng Docker Compose](#chạy-bằng-docker-compose)
-- [Kiểm thử và build](#kiểm-thử-và-build)
-- [Tài liệu API](#tài-liệu-api)
-- [Chatbot FinTrack](#chatbot-fintrack)
-- [Bảo mật và quyền riêng tư](#bảo-mật-và-quyền-riêng-tư)
-- [Giới hạn hiện tại](#giới-hạn-hiện-tại)
+- [Build và kiểm thử](#build-và-kiểm-thử)
+- [API và tài liệu](#api-và-tài-liệu)
+- [Prometheus và Grafana](#prometheus-và-grafana)
+- [Chatbot](#chatbot)
+- [Cấu trúc dự án](#cấu-trúc-dự-án)
+- [Bảo mật](#bảo-mật)
 - [Khắc phục sự cố](#khắc-phục-sự-cố)
 
-## Giới thiệu
+## Tính năng
 
-FinTrack là ứng dụng quản lý tài chính cá nhân gồm giao diện web và API backend. Người dùng có thể ghi nhận các khoản thu, chi và chuyển khoản; tổ chức tài khoản, danh mục, ngân sách, khoản vay/nợ; theo dõi số dư và xem báo cáo.
+- **Tổng quan:** số dư, thu chi, biểu đồ, giao dịch gần đây và cảnh báo.
+- **Giao dịch:** tạo, tìm kiếm, lọc, chỉnh sửa, xóa và xuất CSV; hỗ trợ thu nhập, chi tiêu và chuyển khoản.
+- **Tài khoản và danh mục:** quản lý tài khoản tiền mặt/ngân hàng/ví điện tử và danh mục thu chi.
+- **Ngân sách:** đặt hạn mức theo danh mục, theo dõi mức sử dụng và cảnh báo.
+- **Vay và nợ:** theo dõi khoản vay/cho vay, thanh toán và ngày đến hạn.
+- **Báo cáo, thông báo và hồ sơ:** tổng hợp tài chính, nhắc nhở, cập nhật hồ sơ và ảnh đại diện.
+- **Đăng nhập:** email/mật khẩu; Google Identity Services là tùy chọn.
+- **Chatbot:** hướng dẫn sử dụng FinTrack dựa trên nội dung dự án đã xác minh.
 
-Ứng dụng lưu dữ liệu trên MongoDB. Các API tài chính yêu cầu đăng nhập và giới hạn dữ liệu theo người dùng hiện tại.
+Các API tài chính yêu cầu đăng nhập và chỉ truy cập dữ liệu của người dùng hiện tại. Chuyển khoản không được tính là thu nhập hoặc chi tiêu. Tiền tệ hiện hỗ trợ là VND.
 
 ## Công nghệ
 
 | Thành phần | Công nghệ |
 |---|---|
-| Giao diện | React 18, TypeScript, Vite, Tailwind CSS |
-| API | Node.js 20+, Express, TypeScript |
-| Cơ sở dữ liệu | MongoDB, Mongoose |
+| Frontend | React 18, TypeScript, Vite, Tailwind CSS, Recharts |
+| Backend | Node.js 20+, Express, TypeScript |
+| Cơ sở dữ liệu | MongoDB 7+, Mongoose |
 | Xác thực | JWT, bcrypt; Google Identity Services tùy chọn |
-| Biểu đồ | Recharts |
-| Kiểm thử API | Node.js test runner, `tsx`, MongoDB |
-| Triển khai container | Docker, Docker Compose |
-| Giám sát | Prometheus, Grafana, `prom-client` |
+| Kiểm thử | Jest và Node.js test runner |
+| Container/giám sát | Docker Compose, Prometheus, Grafana |
 
-## Tính năng
+## Chạy nhanh bằng Docker Compose
 
-- **Tổng quan:** tổng thu, tổng chi, số dư, biểu đồ, giao dịch gần đây và cảnh báo.
-- **Giao dịch:** tạo, xem, lọc, tìm kiếm, sửa, xóa và xuất CSV cho khoản thu, khoản chi và chuyển khoản.
-- **Tài khoản:** quản lý tài khoản tiền mặt, ngân hàng, ví điện tử và số dư tính từ sổ giao dịch.
-- **Danh mục:** phân loại thu nhập/chi tiêu bằng danh mục hệ thống hoặc danh mục cá nhân.
-- **Ngân sách:** đặt hạn mức theo danh mục chi tiêu và khoảng ngày; theo dõi số đã dùng, còn lại và cảnh báo.
-- **Vay & nợ:** quản lý khoản vay/cho vay, thanh toán, số còn lại và ngày đến hạn.
-- **Báo cáo:** xem tổng hợp thu chi, xu hướng theo tháng, chi tiêu theo danh mục và xuất CSV.
-- **Thông báo:** xem cảnh báo ngân sách và khoản nợ; đánh dấu đã đọc.
-- **Hồ sơ:** cập nhật tên, số điện thoại, ngày sinh và ảnh đại diện; email đăng nhập chỉ đọc.
-- **Giao diện:** avatar mặc định, menu tài khoản, chế độ sáng/tối được lưu trong trình duyệt.
-- **Chatbot:** hỗ trợ câu hỏi về tính năng FinTrack dựa trên nội dung đã xác minh.
-- **Đăng nhập:** email/mật khẩu; đăng nhập Google nếu đã cấu hình.
+Cách này khởi động giao diện, API, MongoDB, Prometheus và Grafana cùng lúc. Cần cài **Docker Desktop** (bao gồm Docker Compose).
 
-Các thao tác chuyển tiền, số dư và mức sử dụng ngân sách được kiểm tra ở backend. Chuyển khoản không được cộng vào thu nhập/chi tiêu hoặc mức dùng ngân sách. Tiền tệ hiện được hỗ trợ là VND và số tiền giao dịch là số nguyên dương.
+1. Mở PowerShell tại thư mục gốc dự án.
+2. Tạo tệp cấu hình Docker từ mẫu (nếu chưa có):
 
-## Kiến trúc dự án
+   ```powershell
+   if (-not (Test-Path .env)) { Copy-Item .env.example .env }
+   ```
 
-```text
-client/                  Ứng dụng React/Vite
-  src/components/        Thành phần giao diện tái sử dụng
-  src/pages/             Các trang giao diện
-  src/services/          Kết nối API từ trình duyệt
-server/                  API Express/TypeScript
-  src/config/            Cấu hình môi trường
-  src/middleware/        Xác thực và middleware
-  src/models/             Mô hình MongoDB
-  src/routes/             API theo chức năng
-  src/services/           Logic dùng chung, chatbot
-  tests/                  Kiểm thử API và luồng nghiệp vụ
-docs/                     Tài liệu API, cơ sở dữ liệu, use case
-public/                   Tài nguyên tĩnh phục vụ API/web
-docker-compose.yml        Cấu hình ứng dụng, MongoDB, Prometheus, Grafana
-Dockerfile                Build và chạy ứng dụng dạng container
-```
+3. Mở `.env`, thay `JWT_SECRET` bằng một chuỗi ngẫu nhiên dài. Nếu dùng Grafana, hãy thay cả `GRAFANA_PASS`. Không dùng các giá trị mẫu cho môi trường thật.
+4. Build và khởi động các dịch vụ:
 
-## Yêu cầu
+   ```powershell
+   docker compose up --build -d
+   ```
 
-- Node.js 20 trở lên và npm.
-- MongoDB Atlas hoặc MongoDB chạy dưới dạng replica set. Replica set cần thiết cho các thao tác dùng transaction nhiều tài liệu.
-- Docker Engine và Docker Compose plugin nếu chạy bằng container.
+5. Đợi các container khởi động, sau đó mở:
 
-## Chạy trên máy cá nhân
+   | Dịch vụ | Địa chỉ |
+   |---|---|
+   | FinTrack (giao diện + API) | [http://localhost:4011](http://localhost:4011) |
+   | API health | [http://localhost:4011/api/health](http://localhost:4011/api/health) |
+   | Prometheus | [http://localhost:9090](http://localhost:9090) |
+   | Grafana | [http://localhost:3000](http://localhost:3000) |
 
-Mở PowerShell tại thư mục dự án:
+Compose tự khởi tạo MongoDB replica set và lưu dữ liệu trong các Docker volume. Để xem log:
 
 ```powershell
-npm install
-Copy-Item server\.env.example server\.env
+docker compose logs -f app
 ```
 
-Mở `server\.env`, đặt `JWT_SECRET` thành chuỗi ngẫu nhiên dài và cấu hình `MONGODB_URI` trỏ đến MongoDB của bạn. Để thử với dữ liệu demo:
+Nạp dữ liệu mẫu (tùy chọn) để đăng nhập bằng tài khoản demo:
 
 ```powershell
-npm run seed --workspace server
+docker compose exec app node server/dist/seed.js
 ```
 
-Khởi động API và giao diện:
-
-```powershell
-npm run dev
-```
-
-- Giao diện Vite: `http://localhost:5173`
-- API mặc định: `http://localhost:4000`
-- Kiểm tra API: `http://localhost:4000/api/health`
-
-Vite chuyển tiếp các yêu cầu `/api` tới backend. Cổng mặc định có thể được ghi đè bằng cấu hình môi trường trong workspace client.
-
-Lệnh seed có thể chạy lại và tạo người dùng demo `demo@fintrack.local` với mật khẩu `password123` cùng dữ liệu mẫu tài chính. **Chỉ dùng thông tin demo ở môi trường phát triển; không dùng mật khẩu này trong môi trường thật.**
-
-## Cấu hình môi trường
-
-### Backend cục bộ
-
-Các biến được đọc từ `server\.env`:
-
-| Biến | Mục đích | Mặc định / ghi chú |
-|---|---|---|
-| `PORT` | Cổng API | `4000` |
-| `JWT_SECRET` | Ký token đăng nhập | Bắt buộc khi chạy production; cần đặt giá trị bí mật mạnh |
-| `MONGODB_URI` | Địa chỉ MongoDB | `mongodb://127.0.0.1:27017/fintrack` |
-| `CLIENT_ORIGIN` | Origin được phép gọi API | `http://localhost:5173` |
-| `GOOGLE_CLIENT_ID` | Bật đăng nhập Google | Để trống nếu không dùng |
-| `AI_API_KEY` | Bật sinh câu trả lời qua AI provider | Để trống để dùng câu trả lời từ nguồn dự án đã chọn |
-| `AI_API_URL` | URL API tương thích OpenAI | Mặc định `https://api.openai.com/v1/chat/completions` |
-| `AI_MODEL` | Tên model | Mặc định `gpt-4o-mini` |
-
-Không đưa khóa bí mật vào mã frontend, không dùng tiền tố `VITE_` cho thông tin bí mật và không commit các tệp `.env`.
-
-### Đăng nhập Google (tùy chọn)
-
-1. Tạo OAuth 2.0 Web client trong Google Cloud Console.
-2. Thêm origin của ứng dụng, ví dụ `http://localhost:5173`, vào **Authorized JavaScript origins**.
-3. Đặt `GOOGLE_CLIENT_ID` trong `server\.env`.
-4. Khởi động lại backend và frontend.
-
-Luồng Google Identity Services dạng ID token chỉ cần client ID. Luồng OAuth redirect riêng của API cần bổ sung `GOOGLE_CLIENT_SECRET` và `GOOGLE_REDIRECT_URI` nếu sử dụng.
-
-## Chạy bằng Docker Compose
-
-Tạo `.env` ở thư mục gốc:
-
-```powershell
-Copy-Item .env.example .env
-```
-
-Đặt một `JWT_SECRET` mạnh trong `.env`. Có thể bổ sung `GOOGLE_CLIENT_ID` hoặc các biến AI nếu muốn bật các tích hợp tương ứng. Sau đó chạy:
-
-```powershell
-docker compose up --build -d
-```
-
-| Dịch vụ | Địa chỉ |
-|---|---|
-| FinTrack | `http://localhost:4010` |
-| API health | `http://localhost:4010/api/health` |
-| Prometheus | `http://localhost:9090` |
-| Grafana | `http://localhost:3000` |
-
-Dừng các dịch vụ:
+Dừng ứng dụng nhưng **giữ lại dữ liệu**:
 
 ```powershell
 docker compose down
 ```
 
-Lệnh trên giữ lại dữ liệu. Chỉ thêm `-v` nếu bạn chủ ý xóa các volume MongoDB, Prometheus và Grafana:
+Chỉ xóa dữ liệu MongoDB, Prometheus và Grafana khi bạn thực sự muốn làm mới hoàn toàn:
 
 ```powershell
 docker compose down -v
 ```
 
-## Kiểm thử và build
+## Chạy để phát triển
+
+### 1. Cài công cụ cần thiết
+
+- Node.js 20 trở lên và npm.
+- MongoDB chạy như **replica set** (cần thiết cho các nghiệp vụ dùng transaction).
+- Docker Desktop để chạy MongoDB theo cách bên dưới; hoặc dùng một MongoDB Atlas cluster.
+
+Mở PowerShell tại thư mục gốc dự án rồi cài các dependency:
+
+```powershell
+npm ci
+```
+
+### 2. Khởi động MongoDB
+
+**Dùng Docker Desktop:** tạo một MongoDB replica set dùng riêng cho môi trường phát triển:
+
+```powershell
+docker run --name fintrack-mongo -d -p 27017:27017 mongo:7.0 mongod --replSet rs0 --bind_ip_all
+Start-Sleep -Seconds 5
+docker exec fintrack-mongo mongosh --quiet --eval 'rs.initiate({_id:"rs0",members:[{_id:0,host:"localhost:27017"}]})'
+```
+
+Nếu container `fintrack-mongo` đã tồn tại, khởi động lại bằng `docker start fintrack-mongo` thay vì chạy lại lệnh `docker run`.
+
+**Dùng MongoDB Atlas:** tạo cluster, lấy connection string và dùng URI đó ở bước tiếp theo. Atlas cluster mặc định hỗ trợ replica set.
+
+### 3. Cấu hình backend
+
+Tạo `server\.env` từ tệp mẫu một lần:
+
+```powershell
+if (-not (Test-Path server\.env)) { Copy-Item server\.env.example server\.env }
+```
+
+Mở `server\.env` và kiểm tra `MONGODB_URI`. Với MongoDB local theo bước trên, giữ giá trị mặc định `mongodb://127.0.0.1:27017/fintrack`. Nếu dùng Atlas, thay bằng URI của cluster. Bạn cũng nên thay `JWT_SECRET` bằng chuỗi bí mật riêng.
+
+### 4. Nạp dữ liệu mẫu (tùy chọn)
+
+```powershell
+npm run seed --workspace server
+```
+
+Lệnh này tạo tài khoản demo `demo@fintrack.local` / `password123` cùng dữ liệu tài chính mẫu. Có thể chạy lại để bổ sung dữ liệu mẫu; không dùng tài khoản hoặc mật khẩu này trong production.
+
+### 5. Chạy frontend và backend
+
+```powershell
+npm run dev
+```
+
+Lệnh trên khởi động cả API và Vite. Mở giao diện tại [http://localhost:5173](http://localhost:5173). Vite chuyển tiếp `/api` đến backend tại `http://localhost:4000`; kiểm tra backend tại [http://localhost:4000/api/health](http://localhost:4000/api/health).
+
+Nhấn `Ctrl+C` trong terminal để dừng các tiến trình phát triển.
+
+## Cấu hình môi trường
+
+### Backend chạy local (`server\.env`)
+
+| Biến | Mặc định | Ghi chú |
+|---|---|---|
+| `PORT` | `4000` | Cổng API local |
+| `JWT_SECRET` | Khóa phát triển mặc định | Đặt khóa riêng; bắt buộc trong production |
+| `MONGODB_URI` | `mongodb://127.0.0.1:27017/fintrack` | MongoDB phải hỗ trợ replica set |
+| `CLIENT_ORIGIN` | `http://localhost:5173` | Origin frontend được phép gọi API |
+| `GOOGLE_CLIENT_ID` | Trống | Chỉ cần nếu bật đăng nhập Google |
+| `AI_API_KEY` | Trống | Để trống để chatbot dùng nguồn FinTrack tích hợp |
+| `AI_API_URL` | `https://api.openai.com/v1/chat/completions` | API tương thích OpenAI, tùy chọn |
+| `AI_MODEL` | `gpt-4o-mini` | Model của AI provider, tùy chọn |
+
+### Docker Compose (`.env` ở thư mục gốc)
+
+Compose yêu cầu `JWT_SECRET`. Các biến tùy chọn được khai báo trong [`.env.example`](./.env.example):
+
+| Biến | Mục đích |
+|---|---|
+| `JWT_SECRET` | Khóa ký JWT, bắt buộc |
+| `GRAFANA_PASS` | Mật khẩu tài khoản Grafana `admin` |
+| `GOOGLE_CLIENT_ID` | Bật đăng nhập Google |
+| `AI_API_KEY`, `AI_API_URL`, `AI_MODEL` | Cấu hình AI provider cho chatbot |
+
+Đăng nhập Google cần tạo OAuth 2.0 Web client trong Google Cloud Console, thêm origin của ứng dụng vào **Authorized JavaScript origins**, đặt `GOOGLE_CLIENT_ID` ở backend rồi khởi động lại ứng dụng. Origin local là `http://localhost:5173`; khi dùng Compose là `http://localhost:4011`.
+
+Không commit `.env`, không đưa khóa bí mật vào frontend và không dùng tiền tố `VITE_` cho thông tin nhạy cảm.
+
+## Build và kiểm thử
 
 Build frontend và backend:
 
@@ -179,104 +196,79 @@ Build frontend và backend:
 npm run build
 ```
 
-Chạy kiểm thử API và nghiệp vụ (cần MongoDB sẵn sàng theo `MONGODB_URI`):
+Chạy kiểm thử backend (MongoDB phải hoạt động và `MONGODB_URI` phải trỏ đúng cơ sở dữ liệu):
 
 ```powershell
 npm test --workspace server
 ```
 
-Chạy kiểm thử phần Express ở thư mục gốc:
+Chạy kiểm thử Express ở thư mục gốc:
 
 ```powershell
 npm test
 ```
 
-GitHub Actions chạy các bước build và kiểm thử trên mỗi push/pull request, sau đó khởi động ứng dụng cùng Prometheus bằng Docker Compose. Job monitoring xác nhận API health, endpoint `/metrics` và trạng thái scrape `UP` của target `fintrack-app` trước khi CI thành công.
+## API và tài liệu
 
-## Tài liệu API
+Các API chức năng nằm dưới tiền tố `/api/v1`. Route cần đăng nhập yêu cầu token dạng `Authorization: Bearer <token>`.
 
-Các API được đặt dưới tiền tố `/api/v1`. Route cá nhân yêu cầu header xác thực:
-
-```text
-Authorization: Bearer <token>
-```
-
-Tài liệu chi tiết:
-
+- **Health check:** `GET /api/health`
+- **Prometheus metrics:** `GET /metrics`
 - [Tài liệu API](./docs/api-documentation.md)
 - [Use case và quy trình nghiệp vụ](./docs/use-cases.md)
 - [Thiết kế cơ sở dữ liệu](./docs/database-design.md)
 
-API health: `GET /api/health`. Chỉ số Prometheus: `GET /metrics`.
+## Prometheus và Grafana
 
-### Prometheus và Grafana
+Prometheus và Grafana được khởi động cùng Docker Compose. Prometheus lấy metrics từ API tại `/metrics`; kiểm tra trạng thái scrape ở [http://localhost:9090/targets](http://localhost:9090/targets), target `fintrack-app` cần ở trạng thái **UP**.
 
-Đặt `GRAFANA_PASS` trong tệp `.env` ở thư mục gốc bằng mật khẩu mạnh, riêng biệt trước khi chạy Compose. Nếu chưa đặt biến này, Compose dùng mật khẩu mặc định `admin123`; không dùng giá trị mặc định trong môi trường thật.
+Đăng nhập Grafana tại [http://localhost:3000](http://localhost:3000) với tên `admin` và mật khẩu trong `GRAFANA_PASS` (mặc định trong cấu hình mẫu là `change-this-to-a-strong-password`). Thêm data source Prometheus với URL `http://prometheus:9090`. Ví dụ truy vấn:
 
-```powershell
-docker compose build app
-docker compose up -d
+```promql
+rate(fintrack_http_requests_total[5m])
 ```
 
-- Mở `http://localhost:9090/targets` và xác nhận target `fintrack-app` có trạng thái **UP**.
-- Mở `http://localhost:3000`, đăng nhập với tên `admin` và mật khẩu từ `GRAFANA_PASS`.
-- Trong Grafana, thêm data source **Prometheus** với URL `http://prometheus:9090`, rồi lưu và kiểm tra kết nối.
-- Ví dụ truy vấn PromQL: `rate(fintrack_http_requests_total[5m])`.
+Endpoint `/metrics` không yêu cầu JWT. Nhãn route dùng mẫu đã khớp, tránh đưa ID thay đổi liên tục vào metrics.
 
-Endpoint `/metrics` không yêu cầu JWT. Các chỉ số request gồm method, route đã khớp (hoặc `unmatched`) và status code; route được ghi dưới dạng mẫu để tránh tạo nhãn có ID thay đổi liên tục.
+## Chatbot
 
-## Chatbot FinTrack
+Chatbot xuất hiện sau khi người dùng đăng nhập. API `POST /api/v1/chat` chỉ hướng dẫn về tính năng và quy trình FinTrack; hiện không truy vấn dữ liệu tài chính cá nhân và không thực hiện thao tác ghi/sửa/xóa. Chatbot giới hạn 15 yêu cầu mỗi phút trên mỗi người dùng, mỗi tiến trình API.
 
-Chatbot nằm ở góc dưới bên phải sau khi người dùng đăng nhập. Chatbot trả lời bằng nội dung chức năng và quy trình FinTrack đã được xác minh; câu hỏi ngoài phạm vi bị từ chối và câu hỏi thiếu nguồn sẽ được báo rõ.
+Không cấu hình `AI_API_KEY`: chatbot trả lời từ nội dung FinTrack tích hợp. Khi bật AI provider, câu hỏi và trích đoạn tài liệu dự án phù hợp được gửi tới provider; dữ liệu tài chính riêng tư và khóa API không được gửi.
 
-- API: `POST /api/v1/chat`, yêu cầu đăng nhập.
-- Giới hạn: 15 yêu cầu mỗi phút cho mỗi người dùng trên mỗi tiến trình API.
-- Chatbot không đọc số dư, giao dịch hoặc dữ liệu riêng tư, và không thực hiện thao tác ghi/sửa/xóa.
-- Không cấu hình `AI_API_KEY`: dùng các trích đoạn nguồn FinTrack được chọn ở backend.
-- Có cấu hình provider: câu hỏi và trích đoạn dự án phù hợp sẽ được gửi tới provider đã cấu hình; dữ liệu tài chính riêng tư và khóa API không được gửi.
-- Thông tin giống mật khẩu, token hoặc khóa bí mật bị chặn trước khi xử lý.
+## Cấu trúc dự án
 
-Để bật sinh câu trả lời bằng provider OpenAI-compatible, cấu hình `AI_API_KEY` (và tùy chọn `AI_API_URL`, `AI_MODEL`) ở backend; với Docker Compose, khai báo chúng trong `.env` ở thư mục gốc. Không đặt khóa trong biến môi trường frontend.
+```text
+client/                  Giao diện React/Vite
+  src/components/        Thành phần giao diện
+  src/pages/             Các trang ứng dụng
+  src/services/          Kết nối API
+server/                  API Express/TypeScript
+  src/config/            Cấu hình môi trường
+  src/models/            Mô hình MongoDB
+  src/routes/             API theo chức năng
+  src/services/           Chatbot và logic dùng chung
+  tests/                  Kiểm thử backend
+docs/                     Tài liệu API, use case, cơ sở dữ liệu
+docker-compose.yml        Ứng dụng, MongoDB, Prometheus, Grafana
+Dockerfile                Build ứng dụng dạng container
+```
 
-## Bảo mật và quyền riêng tư
+## Bảo mật
 
-- Mỗi yêu cầu dữ liệu tài chính được xác thực và kiểm tra quyền sở hữu ở API.
-- Không lưu thông tin bí mật trong Git; tệp `.env` cục bộ phải được giữ riêng.
-- Môi trường production phải có `JWT_SECRET` riêng, đủ mạnh.
-- MongoDB không sẵn sàng thì API không khởi chạy; ứng dụng không chuyển sang dữ liệu giả trong bộ nhớ.
-- Ảnh hồ sơ được kiểm tra định dạng; email đăng nhập không thể sửa từ trang hồ sơ.
-- Nếu bật AI provider bên ngoài, chỉ câu hỏi và đoạn tài liệu dự án liên quan được gửi đi. Hãy xem chính sách dữ liệu của provider trước khi sử dụng.
-
-## Giới hạn hiện tại
-
-- Chatbot chưa kết nối công cụ truy vấn số liệu cá nhân; người dùng xem dữ liệu của mình trong Tổng quan, Giao dịch, Ngân sách hoặc Báo cáo.
-- Kho tri thức chatbot là nội dung dự án đã biên soạn, chưa phải hệ thống lập chỉ mục RAG tự động toàn bộ source code.
-- Chuyển nhanh giữa các tài khoản đã liên kết chưa được hỗ trợ; người dùng có thể đăng xuất rồi đăng nhập tài khoản khác.
-- Cảnh báo ngân sách và ngày đến hạn được tính khi đọc dữ liệu; tác vụ gửi nhắc tự động theo lịch chưa được triển khai.
-- Giới hạn tốc độ chatbot đang lưu trong bộ nhớ của từng tiến trình; triển khai nhiều instance cần một rate limiter dùng chung.
+- Mỗi yêu cầu tài chính được xác thực và giới hạn theo người dùng.
+- MongoDB không truy cập được thì backend không khởi động; ứng dụng không tự chuyển sang dữ liệu giả.
+- Dùng `JWT_SECRET` riêng, đủ mạnh cho mọi môi trường triển khai.
+- Không commit tệp `.env`, token hoặc khóa API.
+- Nếu bật AI provider bên ngoài, hãy xem chính sách dữ liệu của provider trước khi sử dụng.
 
 ## Khắc phục sự cố
 
-### API không kết nối được MongoDB
-
-- Kiểm tra `MONGODB_URI` trong `server\.env`.
-- Đảm bảo MongoDB đang chạy và URI hỗ trợ replica set cho các nghiệp vụ dùng transaction.
-- API không thể khởi chạy khi MongoDB không truy cập được.
-
-### Giao diện không gọi được API
-
-- Kiểm tra API có đang chạy đúng cổng trong `PORT` không.
-- Kiểm tra cấu hình proxy của Vite và `CLIENT_ORIGIN`.
-- Mở `http://localhost:4000/api/health` (đổi cổng nếu cấu hình khác) để kiểm tra backend.
-
-### Đăng nhập Google không hiển thị hoặc không hoạt động
-
-- Kiểm tra `GOOGLE_CLIENT_ID` và origin đã khai báo trong Google Cloud Console.
-- Khởi động lại dev server sau khi sửa cấu hình.
-- Đăng nhập popup cần chính sách `Cross-Origin-Opener-Policy: same-origin-allow-popups`, đã được cấu hình cho Vite và API production.
-
-### Chatbot báo chưa cấu hình hoặc không thể kết nối
-
-- Xác nhận người dùng đã đăng nhập.
-- Kiểm tra log backend và kết nối tới provider nếu đã cấu hình `AI_API_KEY`.
-- Có thể bỏ trống khóa AI để chatbot trả lời trực tiếp từ nguồn FinTrack đã xác minh.
+| Hiện tượng | Cách kiểm tra |
+|---|---|
+| Backend không kết nối được MongoDB | Kiểm tra MongoDB đang chạy, `MONGODB_URI` đúng và replica set đã khởi tạo. |
+| Giao diện không gọi được API | Khi chạy dev, kiểm tra API ở `http://localhost:4000/api/health`, `PORT` và `CLIENT_ORIGIN`. Khi dùng Compose, kiểm tra `http://localhost:4011/api/health` và log bằng `docker compose logs -f app`. |
+| Cổng `27017` đã được sử dụng | Dừng dịch vụ MongoDB khác hoặc đổi port được ánh xạ, đồng thời cập nhật `MONGODB_URI`. |
+| Container MongoDB đã tồn tại | Dùng `docker start fintrack-mongo` thay vì tạo container cùng tên lần nữa. |
+| Đăng nhập Google không hoạt động | Kiểm tra `GOOGLE_CLIENT_ID`, origin trong Google Cloud Console và khởi động lại ứng dụng. |
+| Chatbot không gọi được AI provider | Kiểm tra `AI_API_KEY`, `AI_API_URL`, log backend và kết nối mạng. Có thể để trống khóa để dùng câu trả lời tích hợp. |
