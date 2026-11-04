@@ -20,6 +20,7 @@
 - [Chạy để phát triển](#chạy-để-phát-triển)
 - [Cấu hình môi trường](#cấu-hình-môi-trường)
 - [Build và kiểm thử](#build-và-kiểm-thử)
+- [Tự động đẩy image lên Docker Hub](#tự-động-đẩy-image-lên-docker-hub)
 - [API và tài liệu](#api-và-tài-liệu)
 - [Prometheus và Grafana](#prometheus-và-grafana)
 - [Chatbot](#chatbot)
@@ -207,6 +208,30 @@ Chạy kiểm thử Express ở thư mục gốc:
 ```powershell
 npm test
 ```
+
+## Tự động đẩy image lên Docker Hub
+
+Workflow GitHub Actions sẽ build và đẩy image `fintrack` lên Docker Hub sau khi build, kiểm thử và smoke test thành công:
+
+- Push lên nhánh mặc định `master`: đẩy tag `latest` và `master`.
+- Push Git tag bắt đầu bằng `v` (ví dụ `v1.2.0`): đẩy tag image tương ứng.
+- Pull request và các nhánh khác không đẩy image.
+
+Thiết lập một lần trong GitHub:
+
+1. Tạo repository `fintrack` trên Docker Hub.
+2. Tạo Docker Hub access token có quyền **Read & Write**.
+3. Trong GitHub, mở **Settings → Secrets and variables → Actions → New repository secret** và thêm:
+   - `DOCKERHUB_USERNAME`: Docker Hub username.
+   - `DOCKERHUB_TOKEN`: access token vừa tạo (không dùng mật khẩu tài khoản).
+4. Push thay đổi lên `master` để workflow tự chạy. Để phát hành một phiên bản, tạo và push tag:
+
+   ```powershell
+   git tag v1.2.0
+   git push origin v1.2.0
+   ```
+
+Sau khi chạy thành công, image sẽ có dạng `DOCKERHUB_USERNAME/fintrack:latest` hoặc `DOCKERHUB_USERNAME/fintrack:v1.2.0`. Thay `DOCKERHUB_USERNAME` bằng username Docker Hub của bạn khi pull image.
 
 ## API và tài liệu
 
